@@ -43,13 +43,13 @@ The student experience focuses on a friendly, accessible, and engaging UI.
 - [x] **Phase 1:** Frontend foundation, Tailwind v4, Router setup, and shared components
 - [x] **Phase 2:** Authentication screens (Login, Register, Unauthorized) and Context
 - [x] **Phase 3:** Student Layout, Sidebar, Topbar, and Dashboard 
-- [ ] **Phase 4:** Language Selection
-- [ ] **Phase 5:** Reading Exercise & Web Speech/Microphone Integration
-- [ ] **Phase 6:** Reading Result & Score Visualization
-- [ ] **Phase 7:** Student Progress & Charts
-- [ ] **Phase 8:** Polish (Responsiveness, Accessibility, Loading/Empty states)
-- [ ] **Phase 9:** End-to-end Student Journey Testing
-- [ ] **Phase 10:** Integration Handoff Document preparation
+- [x] **Phase 4:** Language Selection
+- [x] **Phase 5:** Reading Exercise & Web Speech/Microphone Integration
+- [x] **Phase 6:** Reading Result & Score Visualization
+- [x] **Phase 7:** Student Progress & Charts
+- [x] **Phase 8:** Polish (Responsiveness, Accessibility, Loading/Empty states)
+- [x] **Phase 9:** End-to-end Student Journey Testing
+- [x] **Phase 10:** Integration Handoff Document preparation
 
 ## Running the Application
 
@@ -65,3 +65,41 @@ Build for production:
 ```bash
 npm run build
 ```
+
+## Git Submission Workflow
+
+When you are ready to save and push your frontend changes to GitHub, follow these exact commands:
+
+1. **Verify your branch**
+   Make sure you are on your specific feature branch:
+   ```bash
+   git branch --show-current
+   ```
+   *(Expected output: `feature/student-auth-frontend`)*
+
+2. **Check your changes**
+   Review what files have been modified:
+   ```bash
+   git status
+   git diff --stat
+   ```
+
+3. **Stage your files**
+   Do not use `git add .` blindly. Stage the specific files or folders you own:
+   ```bash
+   git add src/App.jsx src/components/student/ src/pages/student/ src/pages/auth/ src/services/
+   ```
+
+4. **Commit your work**
+   Write a clear, concise commit message describing what you built or fixed:
+   ```bash
+   git commit -m "feat: implement authentication and student experience"
+   ```
+
+5. **Push to GitHub**
+   Push only to your dedicated remote branch (never directly to main):
+   ```bash
+   git push origin feature/student-auth-frontend
+   ```
+
+After pushing, you can navigate to the GitHub repository URL to open a Pull Request!
