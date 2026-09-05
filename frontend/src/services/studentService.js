@@ -4,54 +4,202 @@ import api from './api';
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const LANGUAGE_EXERCISES = {
-  hi: {
-    id: 'ex_hi_1',
-    title: 'बिल्ली और दूध',
-    language: 'Hindi',
-    langCode: 'hi-IN',
-    content: 'बिल्ली मेज़ पर बैठकर दूध पी रही है। बच्चे मैदान में गेंद से खेल रहे हैं।',
-    words: ['बिल्ली', 'मेज़', 'पर', 'बैठकर', 'दूध', 'पी', 'रही', 'है।', 'बच्चे', 'मैदान', 'में', 'गेंद', 'से', 'खेल', 'रहे', 'हैं।']
-  },
-  ta: {
-    id: 'ex_ta_1',
-    title: 'பூனையும் பாலும்',
-    language: 'Tamil',
-    langCode: 'ta-IN',
-    content: 'பூனை மேசையின் மேல் அமர்ந்து பால் குடிக்கிறது. குழந்தைகள் மைதானத்தில் பந்து விளையாடுகிறார்கள்.',
-    words: ['பூனை', 'மேசையின்', 'மேல்', 'அமர்ந்து', 'பால்', 'குடிக்கிறது.', 'குழந்தைகள்', 'மைதானத்தில்', 'பந்து', 'விளையாடுகிறார்கள்.']
-  },
-  te: {
-    id: 'ex_te_1',
-    title: 'పిల్లి మరియు పాలు',
-    language: 'Telugu',
-    langCode: 'te-IN',
-    content: 'పిల్లి బల్లపై కూర్చుని పాలు తాగుతోంది. పిల్లలు ఆటస్థలంలో బంతితో ఆడుకుంటున్నారు.',
-    words: ['పిల్లి', 'బల్లపై', 'కూర్చుని', 'పాలు', 'తాగుతోంది.', 'పిల్లలు', 'ఆటస్థలంలో', 'బంతితో', 'ఆడుకుంటున్నారు.']
-  },
-  es: {
-    id: 'ex_es_1',
-    title: 'El Gato Curioso',
-    language: 'Spanish',
-    langCode: 'es-ES',
-    content: 'El gato curioso duerme tranquilamente bajo el sol mientras los niños juegan en el parque.',
-    words: ['El', 'gato', 'curioso', 'duerme', 'tranquilamente', 'bajo', 'el', 'sol', 'mientras', 'los', 'niños', 'juegan', 'en', 'el', 'parque.']
-  },
-  mr: {
-    id: 'ex_mr_1',
-    title: 'मांजर आणि दूध',
-    language: 'Marathi',
-    langCode: 'mr-IN',
-    content: 'मांजर टेबलावर बसून वाटीतील दूध पीत आहे. मुले बागेत आनंदाने खेळत आहेत.',
-    words: ['मांजर', 'टेबलावर', 'बसून', 'वाटीतील', 'दूध', 'पीत', 'आहे.', 'मुले', 'बागेत', 'आनंदाने', 'खेळत', 'आहेत.']
-  },
-  en: {
-    id: 'ex1',
-    title: 'Animals in the Wild',
-    language: 'English',
-    langCode: 'en-US',
-    content: 'The quick brown fox jumps over the lazy dog near the riverbank.',
-    words: ['The', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog', 'near', 'the', 'riverbank.']
-  }
+  hi: [
+    {
+      id: 'ex_hi_1',
+      title: 'बिल्ली और दूध',
+      language: 'Hindi',
+      langCode: 'hi-IN',
+      content: 'बिल्ली मेज़ पर बैठकर दूध पी रही है। बच्चे मैदान में गेंद से खेल रहे हैं।',
+      words: ['बिल्ली', 'मेज़', 'पर', 'बैठकर', 'दूध', 'पी', 'रही', 'है।', 'बच्चे', 'मैदान', 'में', 'गेंद', 'से', 'खेल', 'रहे', 'हैं।']
+    },
+    {
+      id: 'ex_hi_2',
+      title: 'सुबह का सूरज',
+      language: 'Hindi',
+      langCode: 'hi-IN',
+      content: 'सूरज की पहली किरणें पहाड़ों के पीछे से चमकती हुई निकलती हैं।',
+      words: ['सूरज', 'की', 'पहली', 'किरणें', 'पहाड़ों', 'के', 'पीछे', 'से', 'चमकती', 'हुई', 'निकलती', 'हैं।']
+    },
+    {
+      id: 'ex_hi_3',
+      title: 'पेड़ और चिड़ियाँ',
+      language: 'Hindi',
+      langCode: 'hi-IN',
+      content: 'पेड़ की हरी डालियों पर सुंदर चिड़ियाँ मधुर गीत गा रही हैं।',
+      words: ['पेड़', 'की', 'हरी', 'डालियों', 'पर', 'सुंदर', 'चिड़ियाँ', 'मधुर', 'गीत', 'गा', 'रही', 'हैं।']
+    },
+    {
+      id: 'ex_hi_4',
+      title: 'किताबों की दुनिया',
+      language: 'Hindi',
+      langCode: 'hi-IN',
+      content: 'रोहन और रीता अपनी रंग-बिरंगी किताबों से नई कहानियाँ पढ़ते हैं।',
+      words: ['रोहन', 'और', 'रीता', 'अपनी', 'रंग-बिरंगी', 'किताबों', 'से', 'नई', 'कहानियाँ', 'पढ़ते', 'हैं।']
+    },
+    {
+      id: 'ex_hi_5',
+      title: 'नदी का किनारा',
+      language: 'Hindi',
+      langCode: 'hi-IN',
+      content: 'नदी के किनारे सुंदर फूल खिले हैं और तितलियाँ मंडरा रही हैं।',
+      words: ['नदी', 'के', 'किनारे', 'सुंदर', 'फूल', 'खिले', 'हैं', 'और', 'तितलियाँ', 'मंडरा', 'रही', 'हैं।']
+    }
+  ],
+  ta: [
+    {
+      id: 'ex_ta_1',
+      title: 'பூனையும் பாலும்',
+      language: 'Tamil',
+      langCode: 'ta-IN',
+      content: 'பூனை மேசையின் மேல் அமர்ந்து பால் குடிக்கிறது. குழந்தைகள் மைதானத்தில் பந்து விளையாடுகிறார்கள்.',
+      words: ['பூனை', 'மேசையின்', 'மேல்', 'அமர்ந்து', 'பால்', 'குடிக்கிறது.', 'குழந்தைகள்', 'மைதானத்தில்', 'பந்து', 'விளையாடுகிறார்கள்.']
+    },
+    {
+      id: 'ex_ta_2',
+      title: 'காலைச் சூரியன்',
+      language: 'Tamil',
+      langCode: 'ta-IN',
+      content: 'காலையில் அழகிய சூரியன் மலைகளுக்குப் பின்னால் பிரகாசமாக உதிக்கிறது.',
+      words: ['காலையில்', 'அழகிய', 'சூரியன்', 'மலைகளுக்குப்', 'பின்னால்', 'பிரகாசமாக', 'உதிக்கிறது.']
+    },
+    {
+      id: 'ex_ta_3',
+      title: 'பாடும் பறவைகள்',
+      language: 'Tamil',
+      langCode: 'ta-IN',
+      content: 'மரத்தின் கிளைகளில் அழகான பறவைகள் இனிமையான பாடல்களைப் பாடுகின்றன.',
+      words: ['மரத்தின்', 'கிளைகளில்', 'அழகான', 'பறவைகள்', 'இனிமையான', 'பாடல்களைப்', 'பாடுகின்றன.']
+    },
+    {
+      id: 'ex_ta_4',
+      title: 'கதைப் புத்தகங்கள்',
+      language: 'Tamil',
+      langCode: 'ta-IN',
+      content: 'சிறுவர்கள் பள்ளி நூலகத்தில் பல வண்ணக் கதைப் புத்தகங்களை விரும்பிப் படிக்கிறார்கள்.',
+      words: ['சிறுவர்கள்', 'பள்ளி', 'நூலகத்தில்', 'பல', 'வண்ணக்', 'கதைப்', 'புத்தகங்களை', 'விரும்பிப்', 'படிக்கிறார்கள்.']
+    }
+  ],
+  te: [
+    {
+      id: 'ex_te_1',
+      title: 'పిల్లి మరియు పాలు',
+      language: 'Telugu',
+      langCode: 'te-IN',
+      content: 'పిల్లి బల్లపై కూర్చుని పాలు తాగుతోంది. పిల్లలు ఆటస్థలంలో బంతితో ఆడుకుంటున్నారు.',
+      words: ['పిల్లి', 'బల్లపై', 'కూర్చుని', 'పాలు', 'తాగుతోంది.', 'పిల్లలు', 'ఆటస్థలంలో', 'బంతితో', 'ఆడుకుంటున్నారు.']
+    },
+    {
+      id: 'ex_te_2',
+      title: 'ఉదయపు సూర్యుడు',
+      language: 'Telugu',
+      langCode: 'te-IN',
+      content: 'ఉదయాన్నే కొండల వెనుక నుండి ప్రకాశవంతమైన సూర్యుడు ఉదయిస్తాడు.',
+      words: ['ఉదయాన్నే', 'కొండల', 'వెనుక', 'నుండి', 'ప్రకాశవంతమైన', 'సూర్యుడు', 'ఉదయిస్తాడు.']
+    },
+    {
+      id: 'ex_te_3',
+      title: 'పాడుతున్న పక్షులు',
+      language: 'Telugu',
+      langCode: 'te-IN',
+      content: 'చెట్ల కొమ్మలపై అందమైన పక్షులు మధురమైన పాటలు పాడుతున్నాయి.',
+      words: ['చెట్ల', 'కొమ్మలపై', 'అందమైన', 'పక్షులు', 'మధురమైన', 'పాటలు', 'పాడుతున్నాయి.']
+    }
+  ],
+  es: [
+    {
+      id: 'ex_es_1',
+      title: 'El Gato Curioso',
+      language: 'Spanish',
+      langCode: 'es-ES',
+      content: 'El gato curioso duerme tranquilamente bajo el sol mientras los niños juegan en el parque.',
+      words: ['El', 'gato', 'curioso', 'duerme', 'tranquilamente', 'bajo', 'el', 'sol', 'mientras', 'los', 'niños', 'juegan', 'en', 'el', 'parque.']
+    },
+    {
+      id: 'ex_es_2',
+      title: 'El Sol de la Mañana',
+      language: 'Spanish',
+      langCode: 'es-ES',
+      content: 'El sol brillante ilumina las montañas verdes cada hermosa mañana.',
+      words: ['El', 'sol', 'brillante', 'ilumina', 'las', 'montañas', 'verdes', 'cada', 'hermosa', 'mañana.']
+    },
+    {
+      id: 'ex_es_3',
+      title: 'Los Pájaros Cantores',
+      language: 'Spanish',
+      langCode: 'es-ES',
+      content: 'Los pajaritos cantan canciones alegres en las ramas de los grandes árboles.',
+      words: ['Los', 'pajaritos', 'cantan', 'canciones', 'alegres', 'en', 'las', 'ramas', 'de', 'los', 'grandes', 'árboles.']
+    }
+  ],
+  mr: [
+    {
+      id: 'ex_mr_1',
+      title: 'मांजर आणि दूध',
+      language: 'Marathi',
+      langCode: 'mr-IN',
+      content: 'मांजर टेबलावर बसून वाटीतील दूध पीत आहे. मुले बागेत आनंदाने खेळत आहेत.',
+      words: ['मांजर', 'टेबलावर', 'बसून', 'वाटीतील', 'दूध', 'पीत', 'आहे.', 'मुले', 'बागेत', 'आनंदाने', 'खेळत', 'आहेत.']
+    },
+    {
+      id: 'ex_mr_2',
+      title: 'सोनेरी सकाळ',
+      language: 'Marathi',
+      langCode: 'mr-IN',
+      content: 'सकाळी डोंगरांच्या पाठीमागून सोनेरी सूर्य तेजस्वीपणे उगवतो.',
+      words: ['सकाळी', 'डोंगरांच्या', 'पाठीमागून', 'सोनेरी', 'सूर्य', 'तेजस्वीपणे', 'उगवतो.']
+    },
+    {
+      id: 'ex_mr_3',
+      title: 'किलबिलणारे पक्षी',
+      language: 'Marathi',
+      langCode: 'mr-IN',
+      content: 'झाडांच्या हिरव्या फांद्यांवर सुंदर पक्षी गोड गाणी गात आहेत.',
+      words: ['झाडांच्या', 'हिरव्या', 'फांद्यांवर', 'सुंदर', 'पक्षी', 'गोड', 'गाणी', 'गात', 'आहेत.']
+    }
+  ],
+  en: [
+    {
+      id: 'ex1',
+      title: 'Animals in the Wild',
+      language: 'English',
+      langCode: 'en-US',
+      content: 'The quick brown fox jumps over the lazy dog near the riverbank.',
+      words: ['The', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog', 'near', 'the', 'riverbank.']
+    },
+    {
+      id: 'ex_en_2',
+      title: 'The Bright Morning Sun',
+      language: 'English',
+      langCode: 'en-US',
+      content: 'The bright yellow sun rises above the green hills every morning.',
+      words: ['The', 'bright', 'yellow', 'sun', 'rises', 'above', 'the', 'green', 'hills', 'every', 'morning.']
+    },
+    {
+      id: 'ex_en_3',
+      title: 'Birds in the Trees',
+      language: 'English',
+      langCode: 'en-US',
+      content: 'Little birds sing cheerful songs high up in the mango trees.',
+      words: ['Little', 'birds', 'sing', 'cheerful', 'songs', 'high', 'up', 'in', 'the', 'mango', 'trees.']
+    },
+    {
+      id: 'ex_en_4',
+      title: 'The Garden Adventure',
+      language: 'English',
+      langCode: 'en-US',
+      content: 'A brave little rabbit hopped happily across the colorful flower garden.',
+      words: ['A', 'brave', 'little', 'rabbit', 'hopped', 'happily', 'across', 'the', 'colorful', 'flower', 'garden.']
+    },
+    {
+      id: 'ex_en_5',
+      title: 'Reading Storybooks',
+      language: 'English',
+      langCode: 'en-US',
+      content: 'Children love to read exciting adventure storybooks in the school library.',
+      words: ['Children', 'love', 'to', 'read', 'exciting', 'adventure', 'storybooks', 'in', 'the', 'school', 'library.']
+    }
+  ]
 };
 
 const LANG_NORMALIZE = {
@@ -71,7 +219,7 @@ const LANG_NORMALIZE = {
 
 const studentService = {
   getDashboard: async () => {
-    await delay(200);
+    await delay(150);
     return {
       metrics: {
         continueLearning: {
@@ -107,7 +255,7 @@ const studentService = {
       ]
     };
   },
-  getExercise: async (id, language) => {
+  getExercise: async (id, language, previousContent) => {
     // 1. Try to fetch from backend API first
     try {
       if (id && id.length === 24) {
@@ -128,7 +276,14 @@ const studentService = {
       if (language) {
         const res = await api.get('/exercises', { params: { language } });
         if (res.data?.success && res.data?.data?.exercises?.length > 0) {
-          const ex = res.data.data.exercises[0];
+          const exercisesList = res.data.data.exercises;
+          // Filter out previous sentence to always give a fresh new one
+          const filtered = previousContent 
+            ? exercisesList.filter(e => e.text.trim() !== previousContent.trim()) 
+            : exercisesList;
+          const candidates = filtered.length > 0 ? filtered : exercisesList;
+          const randomIndex = Math.floor(Math.random() * candidates.length);
+          const ex = candidates[randomIndex];
           return {
             id: ex._id,
             title: ex.title,
@@ -147,10 +302,18 @@ const studentService = {
     const rawKey = (language || (id && id.includes('_') ? id.split('_')[1] : 'en')).toLowerCase();
     const langKey = LANG_NORMALIZE[rawKey] || 'en';
 
-    const exerciseData = LANGUAGE_EXERCISES[langKey] || LANGUAGE_EXERCISES.en;
+    const pool = LANGUAGE_EXERCISES[langKey] || LANGUAGE_EXERCISES.en;
+    // Pick a sentence different from previousContent
+    const filteredPool = previousContent
+      ? pool.filter(e => e.content.trim() !== previousContent.trim())
+      : pool;
+    const candidates = filteredPool.length > 0 ? filteredPool : pool;
+    const randomIndex = Math.floor(Math.random() * candidates.length);
+    const exerciseData = candidates[randomIndex];
+
     return {
       ...exerciseData,
-      id: id || exerciseData.id
+      id: exerciseData.id
     };
   },
   getProgress: async () => {

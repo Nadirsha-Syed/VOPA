@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { Mic, MicOff, CheckCircle } from 'lucide-react';
+import { Mic, MicOff, CheckCircle, RotateCcw } from 'lucide-react';
 import studentService from '../../services/studentService';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { Button } from '../../components/common/Button';
@@ -66,10 +66,25 @@ export const Exercise = () => {
     loadExercise();
   }, [id, targetLang]);
 
+  const handleNextSentence = async () => {
+    if (isListening) {
+      stopListening();
+    }
+    setIsLoading(true);
+    try {
+      const data = await studentService.getExercise(null, targetLang, exercise?.content);
+      setExercise(data);
+    } catch (err) {
+      console.error('Failed to change exercise:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleFinish = () => {
     stopListening();
     navigate(`/student/exercises/${exercise?.id || 'ex1'}/result`, { 
-      state: { transcript, originalText: exercise?.content }
+      state: { transcript, originalText: exercise?.content, language: exercise?.language }
     });
   };
 
@@ -82,7 +97,7 @@ export const Exercise = () => {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in pb-10 max-w-3xl mx-auto">
+    <div className="space-y-6 animate-fade-in pb-10 max-w-3xl mx-auto">
       
       {/* Header */}
       <div className="text-center space-y-2">
@@ -99,6 +114,18 @@ export const Exercise = () => {
           {exercise.content}
         </p>
       </Card>
+
+      {/* Next Sentence Switcher */}
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={handleNextSentence}
+          className="flex items-center gap-2 px-4 py-2 bg-pastel-purple text-primary-dark hover:bg-purple-100 font-semibold rounded-xl text-sm transition-all shadow-sm active:scale-95 cursor-pointer"
+        >
+          <RotateCcw className="w-4 h-4" />
+          Next Sentence
+        </button>
+      </div>
 
       {/* Controls */}
       <div className="flex flex-col items-center justify-center space-y-6">

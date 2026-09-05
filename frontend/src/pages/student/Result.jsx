@@ -115,11 +115,11 @@ export const Result = () => {
       <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
         <Button 
           variant="secondary" 
-          onClick={() => navigate(`/student/exercises`)}
+          onClick={() => navigate('/student/exercises', { state: { language: location.state?.language, refresh: Date.now() } })}
           className="flex-1 sm:flex-none justify-center"
         >
           <RotateCcw className="w-5 h-5 mr-2" />
-          Try Again
+          Next Exercise
         </Button>
         <Button 
           onClick={() => navigate('/student/dashboard')}
