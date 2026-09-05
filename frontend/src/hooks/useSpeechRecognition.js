@@ -16,20 +16,34 @@ export const useSpeechRecognition = (options = {}) => {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = options.continuous || true;
-    recognition.interimResults = options.interimResults || true;
+    recognition.continuous = options.continuous ?? true;
+    recognition.interimResults = options.interimResults ?? true;
     recognition.lang = options.lang || 'en-US';
 
     recognition.onresult = (event) => {
-      let currentTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        currentTranscript += event.results[i][0].transcript;
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        const text = result[0]?.transcript || '';
+        if (result.isFinal) {
+          finalTranscript += text + ' ';
+        } else {
+          interimTranscript += text;
+        }
       }
-      setTranscript(prev => prev + currentTranscript);
+
+      const fullTranscript = (finalTranscript + interimTranscript).trim();
+      setTranscript(fullTranscript);
     };
 
     recognition.onerror = (event) => {
-      console.error('Speech recognition error', event.error);
+      // 'no-speech' happens naturally during silent pauses; do not abort listening
+      if (event.error === 'no-speech') {
+        return;
+      }
+      console.error('Speech recognition error:', event.error);
       setError(event.error);
       setIsListening(false);
     };
