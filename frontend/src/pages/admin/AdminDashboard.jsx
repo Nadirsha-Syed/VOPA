@@ -76,10 +76,10 @@ export default function AdminDashboard() {
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={scoreTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5efe8" />
                 <XAxis dataKey="name" />
                 <YAxis domain={[0, 100]} />
-                <Line type="monotone" dataKey="score" stroke="#365df5" strokeWidth={3} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="score" stroke="#2E8C5C" strokeWidth={3} dot={{ r: 4, fill: '#2E8C5C' }} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -88,10 +88,10 @@ export default function AdminDashboard() {
         <ChartCard title="Language Distribution">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={languageUsage}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5efe8" />
               <XAxis dataKey="language" />
               <YAxis />
-              <Bar dataKey="value" fill="#7b8bf8" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#4CB582" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

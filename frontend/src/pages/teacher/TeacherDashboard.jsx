@@ -84,10 +84,10 @@ export default function TeacherDashboard() {
         <ChartCard title="Score Distribution">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={scoreDistData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5efe8" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Bar dataKey="count" fill="#365df5" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="count" fill="#2E8C5C" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -95,10 +95,10 @@ export default function TeacherDashboard() {
         <ChartCard title="Language Performance">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={languageChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5efe8" />
               <XAxis dataKey="language" />
               <YAxis domain={[0, 100]} />
-              <Bar dataKey="score" fill="#7b8bf8" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="score" fill="#4CB582" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
