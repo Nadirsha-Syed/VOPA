@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Standardised API response helpers.
  *
  * Every controller should use these helpers so that the response
@@ -27,8 +27,10 @@ const sendSuccess = (res, statusCode = 200, data = {}, message = "") => {
  * @param {number} statusCode  HTTP status code (default 500)
  * @param {string} message     Human-readable error message
  */
-const sendError = (res, statusCode = 500, message = "Something went wrong") => {
-  return res.status(statusCode).json({ success: false, message });
+const sendError = (res, statusCode = 500, message = "Something went wrong", errors = null) => {
+  const body = { success: false, message };
+  if (errors) body.errors = errors;
+  return res.status(statusCode).json(body);
 };
 
 module.exports = { sendSuccess, sendError };
