@@ -1,8 +1,15 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
-const { getTeacherDashboard } = require("../controllers/teacherController");
+const {
+  getTeacherDashboard,
+  getStudentPerformance,
+} = require("../controllers/teacherController");
 const { protect, requireRole } = require("../middleware/authMiddleware");
 
-router.get("/dashboard", protect, requireRole("teacher"), getTeacherDashboard);
+// Teacher Dashboard Overview Metrics
+router.get("/dashboard", protect, requireRole("teacher", "admin"), getTeacherDashboard);
+
+// Detailed Student Performance & History
+router.get("/students/:id", protect, requireRole("teacher", "admin"), getStudentPerformance);
 
 module.exports = router;
