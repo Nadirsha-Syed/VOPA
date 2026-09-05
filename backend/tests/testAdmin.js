@@ -184,6 +184,48 @@ const runAdminTests = async () => {
       "DELETE /api/admin/users/:id soft-deactivates user"
     );
 
+    // G. Single-Admin Policy Enforcements
+    const tryCreateAdminRes = await fetch(`${baseUrl}/api/admin/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({
+        name: "Second Admin",
+        email: "secondadmin@vopa.test",
+        password: "Admin@123456",
+        role: "admin",
+      }),
+    });
+    assert(
+      tryCreateAdminRes.status === 400,
+      "POST /api/admin/users blocks creating additional admin accounts (Single-Admin Policy)"
+    );
+
+    const adminUser = await User.findOne({ role: "admin" });
+    const tryDeleteAdminRes = await fetch(`${baseUrl}/api/admin/users/${adminUser._id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert(
+      tryDeleteAdminRes.status === 400,
+      "DELETE /api/admin/users blocks deleting or deactivating the platform administrator"
+    );
+
+    const tryDemoteAdminRes = await fetch(`${baseUrl}/api/admin/users/${adminUser._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify({ role: "teacher" }),
+    });
+    assert(
+      tryDemoteAdminRes.status === 400,
+      "PUT /api/admin/users blocks changing role of the platform administrator"
+    );
+
     // ─────────────────────────────────────────────────────────────
     // TEST: Exercise Management (CRUD)
     // ─────────────────────────────────────────────────────────────
