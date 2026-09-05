@@ -10,8 +10,8 @@ import { Unauthorized } from './pages/auth/Unauthorized';
 import { StudentLayout } from './layouts/StudentLayout';
 import { Dashboard } from './pages/student/Dashboard';
 import { Languages } from './pages/student/Languages';
+import { Exercise } from './pages/student/Exercise';
 
-const Exercise = () => <div>Reading Exercise</div>;
 const Result = () => <div>Reading Result</div>;
 const Progress = () => <div>Student Progress</div>;
 

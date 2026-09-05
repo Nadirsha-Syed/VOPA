@@ -34,6 +34,17 @@ const studentService = {
         { id: 'ex3', title: 'My Family', language: 'Spanish', difficulty: 'Medium', progress: 50, icon: 'Users' }
       ]
     };
+  },
+  getExercise: async (id) => {
+    await delay(500);
+    // Mock exercise data
+    return {
+      id,
+      title: 'Animals',
+      language: 'English',
+      content: 'The quick brown fox jumps over the lazy dog.',
+      words: ['The', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog.']
+    };
   }
 };
 
