@@ -1,16 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Award, RotateCcw, Home, Star } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import studentService from '../../services/studentService';
 
 export const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const recordedRef = useRef(false);
   
   // Get data passed from the Exercise screen
-  const { transcript = '', originalText = '' } = location.state || {};
+  const { transcript = '', originalText = '', language } = location.state || {};
 
   // Simple accuracy calculation (mock logic for MVP)
   // In a real app, this would be a complex NLP matching algorithm
@@ -43,6 +45,19 @@ export const Result = () => {
       totalWords: originalWords.length
     };
   }, [transcript, originalText]);
+
+  useEffect(() => {
+    if (originalText && totalWords > 0 && !recordedRef.current) {
+      recordedRef.current = true;
+      studentService.recordAttempt({
+        exerciseId: id || 'ex1',
+        language: language || 'English',
+        score,
+        wordsCorrect: matchedWords,
+        totalWords
+      });
+    }
+  }, [id, originalText, totalWords, matchedWords, score, language]);
 
   const getFeedbackMessage = (score) => {
     if (score >= 90) return "Outstanding! You're a reading star! 🌟";

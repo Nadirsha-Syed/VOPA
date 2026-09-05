@@ -212,16 +212,9 @@ const createUser = async (req, res, next) => {
       return sendError(res, 400, "Please provide name, email, and password.");
     }
 
-    if (role === "admin") {
-      return sendError(
-        res,
-        400,
-        "Cannot create new admin accounts. The platform operates with a single designated administrator configured via environment settings."
-      );
-    }
-
-    if (!["student", "teacher"].includes(role)) {
-      return sendError(res, 400, "Role must be student or teacher.");
+    const normalizedRole = (role || "student").toLowerCase().trim();
+    if (!["student", "teacher", "admin"].includes(normalizedRole)) {
+      return sendError(res, 400, "Role must be student, teacher, or admin.");
     }
 
     const existingUser = await User.findOne({ email });

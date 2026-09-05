@@ -115,17 +115,25 @@ export const Progress = () => {
       <section>
         <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Badges</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {data.recentAchievements.map(achievement => {
-            const Icon = Icons[achievement.icon] || Icons.Award;
-            return (
-              <Card key={achievement.id} padding="p-4" className="flex items-center space-x-4 shadow-sm border border-gray-100 hover:-translate-y-1 transition-transform">
-                <div className={`p-3 rounded-full ${achievement.bg} ${achievement.color}`}>
-                  <Icon className="w-6 h-6" />
-                </div>
-                <p className="font-bold text-gray-800">{achievement.title}</p>
-              </Card>
-            );
-          })}
+          {data.recentAchievements && data.recentAchievements.length > 0 ? (
+            data.recentAchievements.map(achievement => {
+              const Icon = Icons[achievement.icon] || Icons.Award;
+              return (
+                <Card key={achievement.id} padding="p-4" className="flex items-center space-x-4 shadow-sm border border-gray-100 hover:-translate-y-1 transition-transform">
+                  <div className={`p-3 rounded-full ${achievement.bg} ${achievement.color}`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <p className="font-bold text-gray-800">{achievement.title}</p>
+                </Card>
+              );
+            })
+          ) : (
+            <div className="col-span-full py-8 px-4 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              <Icons.Award className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+              <p className="font-bold text-gray-700">No badges earned yet</p>
+              <p className="text-xs text-gray-400 mt-1">Complete your first reading practice to unlock achievement badges!</p>
+            </div>
+          )}
         </div>
       </section>
 

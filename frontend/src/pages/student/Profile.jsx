@@ -1,21 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { User, Mail, Shield, BookOpen, Settings } from 'lucide-react';
 import { Card } from '../../components/common/Card';
+import studentService from '../../services/studentService';
 
 export const Profile = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState({ storiesRead: 0, level: 'Beginner' });
 
-  // Fallback data in case user object is missing fields during dev
-  const name = user?.name || 'Aarav Sharma';
-  const email = user?.email || 'student@vopa.com';
-  const role = user?.role || 'STUDENT';
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const dashboard = await studentService.getDashboard();
+        // progress is formatted as "X/10", extract X
+        const count = parseInt(dashboard.metrics.progress.value.split('/')[0], 10) || 0;
+        setStats({
+          storiesRead: count,
+          level: count >= 10 ? 'Advanced' : count >= 5 ? 'Intermediate' : 'Beginner'
+        });
+      } catch (e) {
+        console.warn("Could not load stats for profile:", e);
+      }
+    };
+    loadStats();
+  }, []);
+
+  const name = user?.name || 'Student';
+  const email = user?.email || 'student@vopa.org';
+  const role = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()) : 'Student';
+  const primaryLanguage = user?.preferredLanguage || 'English';
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Your Profile</h1>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
+        <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors cursor-pointer">
           <Settings size={20} />
           <span className="font-medium">Settings</span>
         </button>
@@ -51,16 +70,16 @@ export const Profile = () => {
                   <p className="text-sm text-gray-500">The language you learn most often</p>
                 </div>
                 <span className="px-4 py-2 bg-pastel-blue text-blue-700 rounded-full font-medium text-sm">
-                  English
+                  {primaryLanguage}
                 </span>
               </div>
               <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
                 <div>
-                  <h4 className="font-bold text-gray-900">Difficulty Level</h4>
-                  <p className="text-sm text-gray-500">Current exercise difficulty</p>
+                  <h4 className="font-bold text-gray-900">Proficiency Level</h4>
+                  <p className="text-sm text-gray-500">Calculated based on reading practice</p>
                 </div>
                 <span className="px-4 py-2 bg-pastel-green text-green-700 rounded-full font-medium text-sm">
-                  Medium
+                  {stats.level}
                 </span>
               </div>
             </div>
@@ -75,8 +94,8 @@ export const Profile = () => {
                 <BookOpen size={32} className="text-primary-dark" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">12</h3>
-                <p className="text-gray-500">Stories Read</p>
+                <h3 className="text-3xl font-black text-gray-900">{stats.storiesRead}</h3>
+                <p className="text-gray-500 font-medium">Stories Read</p>
               </div>
             </div>
           </Card>
@@ -86,7 +105,7 @@ export const Profile = () => {
               <h4 className="font-bold text-gray-900">Membership</h4>
               <div className="p-4 bg-green-50 border border-green-100 rounded-xl">
                 <p className="text-green-800 font-medium text-sm">Active Student Account</p>
-                <p className="text-green-600 text-xs mt-1">Joined Sept 2026</p>
+                <p className="text-green-600 text-xs mt-1">Status: Verified</p>
               </div>
             </div>
           </Card>

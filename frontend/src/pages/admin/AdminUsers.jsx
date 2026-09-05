@@ -6,6 +6,7 @@ import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
 import Pagination from '../../components/common/Pagination'
 import { adminUsers } from '../../data/adminMockData'
+import api from '../../services/api'
 
 const pageSize = 5
 
@@ -30,23 +31,64 @@ export default function AdminUsers() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const pageRows = filtered.slice((page - 1) * pageSize, page * pageSize)
 
-  const handleSaveUser = (event) => {
+  const handleSaveUser = async (event) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const payload = {
-      id: selectedUser ? selectedUser.id : `usr-${Date.now()}`,
-      name: formData.get('name'),
-      email: formData.get('email'),
-      role: formData.get('role'),
-      preferredLanguage: formData.get('preferredLanguage'),
-      status: formData.get('status'),
-      createdDate: selectedUser ? selectedUser.createdDate : new Date().toISOString().slice(0, 10),
-    }
+    const roleVal = formData.get('role')?.toLowerCase() || 'student'
+    const nameVal = formData.get('name')
+    const emailVal = formData.get('email')
+    const passwordVal = formData.get('password') || 'Password@123'
+    const langVal = formData.get('preferredLanguage') || 'English'
+    const statusVal = formData.get('status') || 'Active'
 
-    if (selectedUser) {
-      setUsers((prev) => prev.map((item) => (item.id === selectedUser.id ? payload : item)))
-    } else {
-      setUsers((prev) => [payload, ...prev])
+    try {
+      if (mode === 'create') {
+        const res = await api.post('/admin/users', {
+          name: nameVal,
+          email: emailVal,
+          password: passwordVal,
+          role: roleVal,
+          preferredLanguage: langVal,
+        })
+        const created = res.data?.data?.user
+        const payload = {
+          id: created?._id || `usr-${Date.now()}`,
+          name: nameVal,
+          email: emailVal,
+          role: formData.get('role'),
+          preferredLanguage: langVal,
+          status: statusVal,
+          createdDate: new Date().toISOString().slice(0, 10),
+        }
+        setUsers((prev) => [payload, ...prev])
+      } else {
+        const payload = {
+          id: selectedUser ? selectedUser.id : `usr-${Date.now()}`,
+          name: nameVal,
+          email: emailVal,
+          role: formData.get('role'),
+          preferredLanguage: langVal,
+          status: statusVal,
+          createdDate: selectedUser ? selectedUser.createdDate : new Date().toISOString().slice(0, 10),
+        }
+        setUsers((prev) => prev.map((item) => (item.id === selectedUser.id ? payload : item)))
+      }
+    } catch (err) {
+      console.warn('API user create fallback to local state:', err)
+      const payload = {
+        id: selectedUser ? selectedUser.id : `usr-${Date.now()}`,
+        name: nameVal,
+        email: emailVal,
+        role: formData.get('role'),
+        preferredLanguage: langVal,
+        status: statusVal,
+        createdDate: selectedUser ? selectedUser.createdDate : new Date().toISOString().slice(0, 10),
+      }
+      if (selectedUser) {
+        setUsers((prev) => prev.map((item) => (item.id === selectedUser.id ? payload : item)))
+      } else {
+        setUsers((prev) => [payload, ...prev])
+      }
     }
 
     setUserModalOpen(false)

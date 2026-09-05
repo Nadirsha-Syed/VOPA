@@ -217,24 +217,120 @@ const LANG_NORMALIZE = {
   en: 'en'
 };
 
+const getStudentAttempts = async () => {
+  let userId = 'default_student';
+  try {
+    const userStr = localStorage.getItem('vopa_user');
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      userId = u.id || u._id || u.email || 'default_student';
+    }
+  } catch (e) {}
+
+  const key = `vopa_attempts_${userId}`;
+  let localAttempts = [];
+  try {
+    localAttempts = JSON.parse(localStorage.getItem(key) || '[]');
+  } catch (e) {}
+
+  if (userId && userId.length === 24) {
+    try {
+      const res = await api.get(`/readings/student/${userId}`);
+      if (res.data?.success && Array.isArray(res.data?.data?.attempts)) {
+        const backendAttempts = res.data.data.attempts.map(att => ({
+          id: att._id,
+          exerciseId: att.exerciseId?._id || att.exerciseId,
+          language: att.exerciseId?.language || 'English',
+          score: att.score || 0,
+          date: att.createdAt,
+          timestamp: new Date(att.createdAt).getTime()
+        }));
+        const existingIds = new Set(localAttempts.map(a => a.id));
+        backendAttempts.forEach(ba => {
+          if (!existingIds.has(ba.id)) {
+            localAttempts.push(ba);
+          }
+        });
+      }
+    } catch (e) {
+      // Backend not reachable or student has no attempts, fallback gracefully
+    }
+  }
+
+  return localAttempts;
+};
+
 const studentService = {
+  recordAttempt: (attemptData) => {
+    try {
+      let userId = 'default_student';
+      const userStr = localStorage.getItem('vopa_user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        userId = u.id || u._id || u.email || 'default_student';
+      }
+      const key = `vopa_attempts_${userId}`;
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      const newAttempt = {
+        id: `att_${Date.now()}`,
+        exerciseId: attemptData.exerciseId,
+        language: attemptData.language || 'English',
+        score: attemptData.score || 0,
+        wordsCorrect: attemptData.wordsCorrect || 0,
+        totalWords: attemptData.totalWords || 0,
+        date: new Date().toISOString(),
+        timestamp: Date.now()
+      };
+      existing.unshift(newAttempt);
+      localStorage.setItem(key, JSON.stringify(existing));
+      return newAttempt;
+    } catch (e) {
+      console.warn("Failed to record attempt:", e);
+    }
+  },
+
   getDashboard: async () => {
-    await delay(150);
+    await delay(100);
+    const attempts = await getStudentAttempts();
+    
+    // Dynamic calculations based on user's real attempts
+    const readingTimeMins = attempts.length > 0 ? Math.max(1, Math.round(attempts.length * 1.5)) : 0;
+    const progressCount = Math.min(10, attempts.length);
+
+    // Compute badges earned dynamically
+    const unlockedBadges = [];
+    if (attempts.length >= 1) {
+      unlockedBadges.push({ id: 'first_reader', title: 'First Reader', icon: 'BookOpen' });
+    }
+    if (attempts.some(a => a.score >= 80)) {
+      unlockedBadges.push({ id: 'accurate_reader', title: 'Accurate Reader', icon: 'Target' });
+    }
+    if (attempts.some(a => a.score === 100)) {
+      unlockedBadges.push({ id: 'perfect_star', title: '100% Mastery', icon: 'Star' });
+    }
+    const languagesAttempted = new Set(attempts.map(a => (a.language || '').toLowerCase()));
+    if (languagesAttempted.size >= 2) {
+      unlockedBadges.push({ id: 'multilingual', title: 'Polyglot Reader', icon: 'Award' });
+    }
+    if (attempts.length >= 5) {
+      unlockedBadges.push({ id: 'reading_champion', title: 'Reading Champion', icon: 'Flame' });
+    }
+
     return {
       metrics: {
         continueLearning: {
           title: "Continue Learning",
-          value: "6 Min",
+          value: `${readingTimeMins} Min`,
           icon: "BookOpen"
         },
         progress: {
           title: "Your Progress",
-          value: "5/10",
+          value: `${progressCount}/10`,
           icon: "TrendingUp"
         },
         badges: {
           title: "Badges",
-          value: "3",
+          value: `${unlockedBadges.length}`,
           icon: "Award"
         }
       },
@@ -247,11 +343,11 @@ const studentService = {
         { id: 'mr', name: 'Marathi', native: 'मराठी', icon: 'MR_TEXT' }
       ],
       recommendedExercises: [
-        { id: 'ex_hi_1', title: 'बिल्ली और दूध', language: 'Hindi', difficulty: 'Easy', progress: 0, icon: '🐱' },
-        { id: 'ex_ta_1', title: 'பூனையும் பாலும்', language: 'Tamil', difficulty: 'Easy', progress: 0, icon: '🥛' },
-        { id: 'ex_te_1', title: 'పిల్లి మరియు పాలు', language: 'Telugu', difficulty: 'Easy', progress: 0, icon: '🐾' },
-        { id: 'ex_es_1', title: 'El Gato Curioso', language: 'Spanish', difficulty: 'Easy', progress: 50, icon: '☀️' },
-        { id: 'ex1', title: 'Animals in the Wild', language: 'English', difficulty: 'Easy', progress: 100, icon: '🦊' }
+        { id: 'ex_hi_1', title: 'बिल्ली और दूध', language: 'Hindi', difficulty: 'Easy', progress: languagesAttempted.has('hindi') ? 100 : 0, icon: '🐱' },
+        { id: 'ex_ta_1', title: 'பூனையும் பாலும்', language: 'Tamil', difficulty: 'Easy', progress: languagesAttempted.has('tamil') ? 100 : 0, icon: '🥛' },
+        { id: 'ex_te_1', title: 'పిల్లి మరియు పాలు', language: 'Telugu', difficulty: 'Easy', progress: languagesAttempted.has('telugu') ? 100 : 0, icon: '🐾' },
+        { id: 'ex_es_1', title: 'El Gato Curioso', language: 'Spanish', difficulty: 'Easy', progress: languagesAttempted.has('spanish') ? 100 : 0, icon: '☀️' },
+        { id: 'ex1', title: 'Animals in the Wild', language: 'English', difficulty: 'Easy', progress: languagesAttempted.has('english') ? 100 : 0, icon: '🦊' }
       ]
     };
   },
@@ -317,24 +413,50 @@ const studentService = {
     };
   },
   getProgress: async () => {
-    await delay(600);
+    await delay(100);
+    const attempts = await getStudentAttempts();
+
+    const totalReadingTime = attempts.length > 0 ? Math.max(1, Math.round(attempts.length * 1.5)) : 0;
+    const averageScore = attempts.length > 0
+      ? Math.round(attempts.reduce((sum, a) => sum + (a.score || 0), 0) / attempts.length)
+      : 0;
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weeklyStats = days.map((day, idx) => {
+      const dayAttempts = attempts.filter(a => new Date(a.date || a.timestamp).getDay() === idx);
+      const dayScore = dayAttempts.length > 0
+        ? Math.round(dayAttempts.reduce((s, a) => s + a.score, 0) / dayAttempts.length)
+        : 0;
+      return {
+        day,
+        score: dayScore,
+        minutes: dayAttempts.length * 2
+      };
+    });
+
+    const recentAchievements = [];
+    if (attempts.length >= 1) {
+      recentAchievements.push({ id: 1, title: 'First Reader', icon: 'BookOpen', color: 'text-blue-500', bg: 'bg-blue-50' });
+    }
+    if (attempts.some(a => a.score >= 80)) {
+      recentAchievements.push({ id: 2, title: 'High Accuracy (80%+)', icon: 'Target', color: 'text-green-500', bg: 'bg-green-50' });
+    }
+    if (attempts.some(a => a.score === 100)) {
+      recentAchievements.push({ id: 3, title: 'Perfect Score 100%', icon: 'Star', color: 'text-yellow-500', bg: 'bg-yellow-50' });
+    }
+    const languages = new Set(attempts.map(a => (a.language || '').toLowerCase()));
+    if (languages.size >= 2) {
+      recentAchievements.push({ id: 4, title: 'Bilingual Reader', icon: 'Award', color: 'text-purple-500', bg: 'bg-purple-50' });
+    }
+    if (attempts.length >= 5) {
+      recentAchievements.push({ id: 5, title: '5 Exercises Completed', icon: 'Flame', color: 'text-orange-500', bg: 'bg-orange-50' });
+    }
+
     return {
-      weeklyStats: [
-        { day: 'Mon', score: 65, minutes: 15 },
-        { day: 'Tue', score: 72, minutes: 20 },
-        { day: 'Wed', score: 85, minutes: 10 },
-        { day: 'Thu', score: 80, minutes: 25 },
-        { day: 'Fri', score: 95, minutes: 30 },
-        { day: 'Sat', score: 90, minutes: 15 },
-        { day: 'Sun', score: 100, minutes: 20 }
-      ],
-      recentAchievements: [
-        { id: 1, title: '7 Day Streak', icon: 'Flame', color: 'text-orange-500', bg: 'bg-orange-50' },
-        { id: 2, title: 'Perfect Score', icon: 'Star', color: 'text-yellow-500', bg: 'bg-yellow-50' },
-        { id: 3, title: '100 Words Read', icon: 'BookOpen', color: 'text-blue-500', bg: 'bg-blue-50' }
-      ],
-      totalReadingTime: 135,
-      averageScore: 84
+      weeklyStats,
+      recentAchievements,
+      totalReadingTime,
+      averageScore
     };
   }
 };

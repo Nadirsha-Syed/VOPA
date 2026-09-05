@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import PageHeader from '../../components/common/PageHeader'
 import SearchBar from '../../components/common/SearchBar'
 import FilterBar from '../../components/common/FilterBar'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
 import { adminExercises } from '../../data/adminMockData'
+import api from '../../services/api'
 
 export default function AdminExercises() {
   const [search, setSearch] = useState('')
@@ -16,6 +17,31 @@ export default function AdminExercises() {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(null)
 
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const res = await api.get('/admin/exercises?limit=50')
+        if (res.data?.success && Array.isArray(res.data?.data?.exercises)) {
+          const list = res.data.data.exercises.map(e => ({
+            id: e._id,
+            title: e.title,
+            language: e.language,
+            difficulty: e.difficulty ? (e.difficulty.charAt(0).toUpperCase() + e.difficulty.slice(1)) : 'Easy',
+            category: e.category ? (e.category.charAt(0).toUpperCase() + e.category.slice(1)) : 'General',
+            status: e.status === 'active' ? 'Active' : 'Inactive',
+            createdDate: e.createdAt ? new Date(e.createdAt).toISOString().slice(0, 10) : '2026-09-05'
+          }))
+          if (list.length > 0) {
+            setExercises(list)
+          }
+        }
+      } catch (err) {
+        console.warn('Fallback to local exercises:', err)
+      }
+    }
+    fetchExercises()
+  }, [])
+
   const filtered = useMemo(() => exercises.filter((exercise) => {
     const matchesSearch = exercise.title.toLowerCase().includes(search.toLowerCase())
     const matchesLanguage = language === 'all' || exercise.language === language
@@ -25,7 +51,7 @@ export default function AdminExercises() {
     return matchesSearch && matchesLanguage && matchesDifficulty && matchesCategory && matchesStatus
   }), [exercises, search, language, difficulty, category, status])
 
-  const handleSave = (event) => {
+  const handleSave = async (event) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const payload = {
@@ -36,6 +62,21 @@ export default function AdminExercises() {
       category: formData.get('category'),
       status: formData.get('status'),
       createdDate: editing ? editing.createdDate : new Date().toISOString().slice(0, 10),
+    }
+
+    try {
+      if (!editing) {
+        await api.post('/admin/exercises', {
+          title: payload.title,
+          text: payload.title,
+          language: payload.language,
+          difficulty: payload.difficulty.toLowerCase(),
+          category: payload.category.toLowerCase(),
+          status: payload.status.toLowerCase(),
+        })
+      }
+    } catch (e) {
+      console.warn('Could not persist to backend exercise API:', e)
     }
 
     if (editing) {

@@ -130,17 +130,17 @@ export const Register = () => {
           />
 
           <div className="pt-2">
-            <label className="text-sm font-medium text-gray-700 block mb-2">I am a</label>
-            <div className="grid grid-cols-2 gap-3">
-              {['STUDENT', 'TEACHER'].map((roleType) => (
+            <label className="text-sm font-semibold text-gray-700 block mb-2">Create Account As</label>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {['STUDENT', 'TEACHER', 'ADMIN'].map((roleType) => (
                 <button
                   key={roleType}
                   type="button"
                   onClick={() => handleChange({ target: { name: 'role', value: roleType } })}
-                  className={`py-2 px-3 text-sm font-medium rounded-lg border transition-colors
+                  className={`py-2.5 px-2 sm:px-3 text-xs sm:text-sm font-semibold rounded-lg border transition-all duration-150 text-center
                     ${formData.role === roleType 
-                      ? 'bg-pastel-purple border-primary text-primary-dark' 
-                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                      ? 'bg-primary text-white border-primary shadow-sm ring-2 ring-primary/20' 
+                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
                     }`}
                 >
                   {roleType.charAt(0) + roleType.slice(1).toLowerCase()}

@@ -11,15 +11,13 @@ const register = async (req, res, next) => {
   try {
     const { name, email, password, role, preferredLanguage } = req.body;
 
-    // Security check: prevent registering as admin/teacher directly via public endpoint
+    // Allow account creation for Student, Teacher, or Admin
     let assignedRole = "student";
-    if (role && role !== "student") {
-      // Teachers and admins must be provisioned by an Admin
-      return sendError(
-        res,
-        403,
-        "Self-registration is restricted to students. Teachers and admins must be created by an Admin."
-      );
+    if (role) {
+      const normalizedRole = String(role).toLowerCase().trim();
+      if (["student", "teacher", "admin"].includes(normalizedRole)) {
+        assignedRole = normalizedRole;
+      }
     }
 
     const existingUser = await User.findOne({ email });
