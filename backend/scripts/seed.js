@@ -41,20 +41,29 @@ const seedDatabase = async () => {
     }
     console.log("✓ Languages seeded.");
 
-    // 2. Seed Default Admin
-    let admin = await User.findOne({ email: "admin@vopa.org" });
+    // 2. Seed Single Fixed Platform Admin
+    const adminEmail = (process.env.ADMIN_EMAIL || "admin@vopa.org").toLowerCase().trim();
+    const adminPassword = process.env.ADMIN_PASSWORD || "Admin@123456";
+    const adminName = process.env.ADMIN_NAME || "Platform Admin";
+
+    let admin = await User.findOne({ email: adminEmail });
     if (!admin) {
       admin = await User.create({
-        name: "Platform Admin",
-        email: "admin@vopa.org",
-        passwordHash: "Admin@123456",
+        name: adminName,
+        email: adminEmail,
+        passwordHash: adminPassword,
         role: "admin",
         preferredLanguage: "English",
         status: "active",
       });
-      console.log("✓ Default Admin created: admin@vopa.org / Admin@123456");
+      console.log(`✓ Fixed Platform Admin created: ${adminEmail}`);
     } else {
-      console.log("✓ Default Admin already exists.");
+      admin.name = adminName;
+      admin.role = "admin";
+      admin.status = "active";
+      admin.passwordHash = adminPassword;
+      await admin.save();
+      console.log(`✓ Fixed Platform Admin synchronized: ${adminEmail}`);
     }
 
     // 3. Seed Default Teacher

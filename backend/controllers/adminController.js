@@ -212,8 +212,16 @@ const createUser = async (req, res, next) => {
       return sendError(res, 400, "Please provide name, email, and password.");
     }
 
-    if (!["student", "teacher", "admin"].includes(role)) {
-      return sendError(res, 400, "Role must be student, teacher, or admin.");
+    if (role === "admin") {
+      return sendError(
+        res,
+        400,
+        "Cannot create new admin accounts. The platform operates with a single designated administrator configured via environment settings."
+      );
+    }
+
+    if (!["student", "teacher"].includes(role)) {
+      return sendError(res, 400, "Role must be student or teacher.");
     }
 
     const existingUser = await User.findOne({ email });
@@ -256,13 +264,29 @@ const updateUser = async (req, res, next) => {
       return sendError(res, 404, "User not found.");
     }
 
+    // Single-Admin enforcement: prevent promoting to admin or demoting the admin
+    if (role === "admin" && user.role !== "admin") {
+      return sendError(
+        res,
+        400,
+        "Cannot promote users to admin. Only one platform administrator is permitted."
+      );
+    }
+    if (user.role === "admin" && role && role !== "admin") {
+      return sendError(
+        res,
+        400,
+        "Cannot change the role of the platform administrator."
+      );
+    }
+
     if (name) user.name = name;
     if (email && email !== user.email) {
       const emailExists = await User.findOne({ email });
       if (emailExists) return sendError(res, 400, "Email already in use by another account.");
       user.email = email;
     }
-    if (role && ["student", "teacher", "admin"].includes(role)) user.role = role;
+    if (role && ["student", "teacher"].includes(role)) user.role = role;
     if (status && ["active", "inactive"].includes(status)) user.status = status;
     if (preferredLanguage) user.preferredLanguage = preferredLanguage;
     if (currentLevel && ["beginner", "intermediate", "advanced"].includes(currentLevel)) {
@@ -297,8 +321,13 @@ const deleteUser = async (req, res, next) => {
       return sendError(res, 404, "User not found.");
     }
 
-    if (user._id.toString() === req.user._id.toString()) {
-      return sendError(res, 400, "You cannot delete your own admin account.");
+    // Protect platform admin from deletion or deactivation
+    if (user.role === "admin") {
+      return sendError(
+        res,
+        400,
+        "The platform administrator account cannot be deactivated or deleted."
+      );
     }
 
     if (permanent === "true") {
