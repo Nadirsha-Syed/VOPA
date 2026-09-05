@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Mic, MicOff, CheckCircle } from 'lucide-react';
 import studentService from '../../services/studentService';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
@@ -8,25 +8,54 @@ import { Card } from '../../components/common/Card';
 
 import { Loader } from '../../components/common/Loader';
 
+const BCP47_MAP = {
+  english: 'en-US',
+  en: 'en-US',
+  hindi: 'hi-IN',
+  hi: 'hi-IN',
+  tamil: 'ta-IN',
+  ta: 'ta-IN',
+  telugu: 'te-IN',
+  te: 'te-IN',
+  spanish: 'es-ES',
+  es: 'es-ES',
+  marathi: 'mr-IN',
+  mr: 'mr-IN',
+};
+
 export const Exercise = () => {
-  // In a real app, we'd get the ID from URL, but in our router it's just /student/exercises 
-  // Wait, our route in App.jsx is path="exercises" (no ID) and path="exercises/:id/result". 
-  // Let's assume it's just a generic exercise page for now based on state, or we should update the route.
-  // We'll use a hardcoded id 'ex1' for the mock if none is provided.
-  const [exercise, setExercise] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { id } = useParams();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const [exercise, setExercise] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Detect requested language from location.state or query params or localStorage
+  const targetLang =
+    location.state?.language ||
+    location.state?.languageId ||
+    searchParams.get('lang') ||
+    localStorage.getItem('vopa_selected_language') ||
+    'English';
+
+  const speechLang =
+    BCP47_MAP[exercise?.language?.toLowerCase()] ||
+    BCP47_MAP[targetLang?.toLowerCase()] ||
+    'en-US';
+
   const { isListening, transcript, error, startListening, stopListening } = useSpeechRecognition({
-    lang: 'en-US',
+    lang: speechLang,
     continuous: true,
-    interimResults: true
+    interimResults: true,
   });
 
   useEffect(() => {
     const loadExercise = async () => {
+      setIsLoading(true);
       try {
-        const data = await studentService.getExercise('ex1');
+        const data = await studentService.getExercise(id, targetLang);
         setExercise(data);
       } catch (err) {
         console.error('Failed to load exercise:', err);
@@ -35,7 +64,7 @@ export const Exercise = () => {
       }
     };
     loadExercise();
-  }, []);
+  }, [id, targetLang]);
 
   const handleFinish = () => {
     stopListening();
@@ -57,6 +86,9 @@ export const Exercise = () => {
       
       {/* Header */}
       <div className="text-center space-y-2">
+        <div className="inline-block px-3 py-1 bg-pastel-blue text-primary-dark font-semibold text-xs rounded-full uppercase tracking-wider mb-1">
+          {exercise.language} Practice
+        </div>
         <h1 className="text-3xl font-extrabold text-gray-900">{exercise.title}</h1>
         <p className="text-gray-500 text-lg">Read the text below out loud.</p>
       </div>

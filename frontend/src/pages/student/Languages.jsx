@@ -29,8 +29,10 @@ export const Languages = () => {
 
   const handleContinue = () => {
     if (selectedLanguage) {
-      // Typically you'd save this to context or local storage, or pass as state
-      navigate('/student/exercises', { state: { languageId: selectedLanguage } });
+      localStorage.setItem('vopa_selected_language', selectedLanguage);
+      navigate(`/student/exercises?lang=${selectedLanguage}`, {
+        state: { languageId: selectedLanguage, language: selectedLanguage },
+      });
     }
   };
 

@@ -77,7 +77,7 @@ export const Dashboard = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">Choose a Language</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {data.languages.map(lang => (
             <LanguageCard 
               key={lang.id}
@@ -85,12 +85,18 @@ export const Dashboard = () => {
               native={lang.native}
               icon={lang.icon}
               isSelected={selectedLanguage === lang.id}
-              onClick={() => setSelectedLanguage(lang.id)}
+              onClick={() => {
+                setSelectedLanguage(lang.id);
+                localStorage.setItem('vopa_selected_language', lang.id);
+              }}
             />
           ))}
         </div>
         <div className="mt-4 flex justify-end">
-          <Button onClick={() => navigate('/student/exercises/ex1', { state: { language: selectedLanguage } })}>
+          <Button onClick={() => {
+            const lang = selectedLanguage || localStorage.getItem('vopa_selected_language') || 'hi';
+            navigate(`/student/exercises?lang=${lang}`, { state: { language: lang, languageId: lang } });
+          }}>
             Continue Practice {selectedLanguage ? `(${data.languages.find(l => l.id === selectedLanguage)?.name || ''})` : ''} →
           </Button>
         </div>
