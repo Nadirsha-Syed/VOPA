@@ -6,10 +6,12 @@ import StatCard from '../../components/common/StatCard'
 import ChartCard from '../../components/charts/ChartCard'
 import Button from '../../components/common/Button'
 import StatusBadge from '../../components/common/StatusBadge'
+import { useAuth } from '../../context/AuthContext'
 import api from '../../services/api'
 
 export default function TeacherDashboard() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [data, setData] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -62,7 +64,7 @@ export default function TeacherDashboard() {
   return (
     <div>
       <PageHeader
-        title="Good morning, Teacher"
+        title={`Good morning, ${user?.name || 'Teacher'}`}
         subtitle="Monitor your students' reading progress and help them improve."
         actions={
           <>

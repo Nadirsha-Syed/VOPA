@@ -1,27 +1,45 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import SearchBar from '../../components/common/SearchBar'
 import FilterBar from '../../components/common/FilterBar'
 import Pagination from '../../components/common/Pagination'
 import Button from '../../components/common/Button'
-import { readingAttempts } from '../../data/teacherMockData'
+import api from '../../services/api'
 
 const pageSize = 5
 
 export default function TeacherReadingAttempts() {
   const navigate = useNavigate()
+  const [attempts, setAttempts] = useState([])
   const [query, setQuery] = useState('')
   const [language, setLanguage] = useState('all')
   const [score, setScore] = useState('all')
   const [page, setPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const filtered = useMemo(() => readingAttempts.filter((attempt) => {
-    const matchesQuery = attempt.student.toLowerCase().includes(query.toLowerCase())
+  useEffect(() => {
+    const fetchAttempts = async () => {
+      try {
+        const res = await api.get('/teacher/reading-attempts')
+        if (res.data?.success && Array.isArray(res.data?.data?.attempts)) {
+          setAttempts(res.data.data.attempts)
+        }
+      } catch (err) {
+        console.warn('Could not load teacher reading attempts API:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchAttempts()
+  }, [])
+
+  const filtered = useMemo(() => attempts.filter((attempt) => {
+    const matchesQuery = (attempt.student || '').toLowerCase().includes(query.toLowerCase())
     const matchesLanguage = language === 'all' || attempt.language === language
     const matchesScore = score === 'all' || (score === 'high' && attempt.score >= 80) || (score === 'mid' && attempt.score >= 70 && attempt.score < 80) || (score === 'low' && attempt.score < 70)
     return matchesQuery && matchesLanguage && matchesScore
-  }), [query, language, score])
+  }), [attempts, query, language, score])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const pageData = filtered.slice((page - 1) * pageSize, page * pageSize)

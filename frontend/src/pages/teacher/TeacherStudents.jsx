@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import SearchBar from '../../components/common/SearchBar'
@@ -9,24 +9,43 @@ import LoadingState from '../../components/common/LoadingState'
 import EmptyState from '../../components/common/EmptyState'
 import ErrorState from '../../components/common/ErrorState'
 import Button from '../../components/common/Button'
-import { teacherStudents } from '../../data/teacherMockData'
+import api from '../../services/api'
 
 const pageSize = 5
 
 export default function TeacherStudents() {
   const navigate = useNavigate()
 
+  const [students, setStudents] = useState([])
   const [query, setQuery] = useState('')
   const [performanceFilter, setPerformanceFilter] = useState('all')
   const [languageFilter, setLanguageFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
-  const [loading] = useState(false)
-  const [error] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await api.get('/teacher/students')
+        if (res.data?.success && Array.isArray(res.data?.data?.students)) {
+          setStudents(res.data.data.students)
+        }
+      } catch (err) {
+        console.warn('Could not fetch teacher students API:', err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStudents()
+  }, [])
 
   const filteredStudents = useMemo(() => {
-    return teacherStudents.filter((student) => {
-      const matchesQuery = student.name.toLowerCase().includes(query.toLowerCase())
+    return students.filter((student) => {
+      const matchesQuery = (student.name || '').toLowerCase().includes(query.toLowerCase()) ||
+                           (student.email || '').toLowerCase().includes(query.toLowerCase())
       const matchesPerformance =
         performanceFilter === 'all' ||
         (performanceFilter === 'high' && student.score >= 85) ||
@@ -37,7 +56,7 @@ export default function TeacherStudents() {
 
       return matchesQuery && matchesPerformance && matchesLanguage && matchesStatus
     })
-  }, [query, performanceFilter, languageFilter, statusFilter])
+  }, [students, query, performanceFilter, languageFilter, statusFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize))
   const pagedStudents = filteredStudents.slice((page - 1) * pageSize, page * pageSize)

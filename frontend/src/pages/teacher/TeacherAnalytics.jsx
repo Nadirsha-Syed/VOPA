@@ -1,14 +1,35 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BarChart, Bar, CartesianGrid, LineChart, Line, XAxis, YAxis, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
 import PageHeader from '../../components/common/PageHeader'
 import ChartCard from '../../components/charts/ChartCard'
 import Button from '../../components/common/Button'
 import { teacherAnalytics } from '../../data/teacherMockData'
+import api from '../../services/api'
 
 const filterOptions = ['7 Days', '30 Days', '3 Months', 'Custom']
 
 export default function TeacherAnalytics() {
   const [range, setRange] = useState('30 Days')
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await api.get('/teacher/dashboard')
+        if (res.data?.success) {
+          setData(res.data.data)
+        }
+      } catch (e) {
+        console.warn('Could not load live analytics:', e)
+      }
+    }
+    fetchAnalytics()
+  }, [])
+
+  const averageScore = data?.classAverageScore ?? 0
+  const highestScore = data?.highestScore ?? 0
+  const lowestScore = data?.lowestScore ?? 0
+  const totalAttempts = data?.totalAttempts ?? 0
 
   return (
     <div>
@@ -25,10 +46,10 @@ export default function TeacherAnalytics() {
       </div>
 
       <div className="stats-grid">
-        <div className="summary-card"><h3>Average Score</h3><span className="summary-value">{teacherAnalytics.averageScore}%</span><small>Across all students</small></div>
-        <div className="summary-card"><h3>Highest Score</h3><span className="summary-value">{teacherAnalytics.highestScore}%</span><small>Top performer</small></div>
-        <div className="summary-card"><h3>Lowest Score</h3><span className="summary-value">{teacherAnalytics.lowestScore}%</span><small>Support needed</small></div>
-        <div className="summary-card"><h3>Total Attempts</h3><span className="summary-value">{teacherAnalytics.totalAttempts}</span><small>Submitted</small></div>
+        <div className="summary-card"><h3>Average Score</h3><span className="summary-value">{averageScore}%</span><small>Across all students</small></div>
+        <div className="summary-card"><h3>Highest Score</h3><span className="summary-value">{highestScore}%</span><small>Top performer</small></div>
+        <div className="summary-card"><h3>Lowest Score</h3><span className="summary-value">{lowestScore}%</span><small>Support needed</small></div>
+        <div className="summary-card"><h3>Total Attempts</h3><span className="summary-value">{totalAttempts}</span><small>Submitted</small></div>
       </div>
 
       <div className="grid-2">
