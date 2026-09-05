@@ -8,7 +8,19 @@ const ReadingAttempt = require("./models/ReadingAttempt");
 const ImprovementPlan = require("./models/ImprovementPlan");
 const generateToken = require("./utils/generateToken");
 
-const TEST_DB_URI = "mongodb://localhost:27017/vopa_test_teacher_analytics";
+// Build an isolated test database URI to guarantee platform/dev data in 'vopa' is NEVER touched
+let TEST_DB_URI = process.env.TEST_MONGO_URI;
+if (!TEST_DB_URI && process.env.MONGO_URI) {
+  TEST_DB_URI = process.env.MONGO_URI.replace(/\/vopa(\?|$)/, "/vopa_test_teacher_analytics$1");
+}
+if (!TEST_DB_URI) {
+  TEST_DB_URI = "mongodb://localhost:27017/vopa_test_teacher_analytics";
+}
+
+// Safety check: Never allow running against the production/development database named "vopa"
+if (TEST_DB_URI.includes("/vopa?") || TEST_DB_URI.endsWith("/vopa")) {
+  throw new Error("CRITICAL SAFETY ERROR: Cannot run test suite against the main 'vopa' database!");
+}
 
 let server;
 let baseUrl;
@@ -392,6 +404,14 @@ async function runTests() {
     console.log("==========================================\n");
   } finally {
     await stopServer();
+    try {
+      if (TEST_DB_URI.includes("vopa_test_teacher_analytics")) {
+        await mongoose.connection.dropDatabase();
+        console.log("Cleaned up isolated test database.");
+      }
+    } catch (e) {
+      // drop error ignored
+    }
     await mongoose.connection.close();
   }
 }
