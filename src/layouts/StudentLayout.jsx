@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/student/Sidebar';
 import { Topbar } from '../components/student/Topbar';
 
-export const StudentLayout = ({ children }) => {
+export const StudentLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -17,7 +18,7 @@ export const StudentLayout = ({ children }) => {
         
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="max-w-6xl mx-auto">
-            {children}
+            <Outlet />
           </div>
         </main>
       </div>

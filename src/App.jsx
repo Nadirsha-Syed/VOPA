@@ -9,8 +9,8 @@ import { Unauthorized } from './pages/auth/Unauthorized';
 
 import { StudentLayout } from './layouts/StudentLayout';
 import { Dashboard } from './pages/student/Dashboard';
+import { Languages } from './pages/student/Languages';
 
-const Languages = () => <div>Language Selection</div>;
 const Exercise = () => <div>Reading Exercise</div>;
 const Result = () => <div>Reading Result</div>;
 const Progress = () => <div>Student Progress</div>;
@@ -28,11 +28,16 @@ function App() {
           {/* Student Routes */}
           <Route path="/student" element={
             <RoleProtectedRoute allowedRoles={['STUDENT']}>
-              <StudentLayout>
-                <Dashboard />
-              </StudentLayout>
+              <StudentLayout />
             </RoleProtectedRoute>
-          } />
+          }>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="languages" element={<Languages />} />
+            <Route path="exercises" element={<Exercise />} />
+            <Route path="exercises/:id/result" element={<Result />} />
+            <Route path="progress" element={<Progress />} />
+          </Route>
           
           {/* Default Route */}
           <Route path="/" element={<Navigate to="/login" replace />} />
