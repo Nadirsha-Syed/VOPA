@@ -22,14 +22,16 @@ const register = async (req, res, next) => {
       );
     }
 
-    const existingUser = await User.findOne({ email });
+    const normalizedEmail = email ? email.trim().toLowerCase() : "";
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return sendError(res, 400, "User with this email already exists.");
     }
 
     const user = await User.create({
-      name,
-      email,
+      name: name ? name.trim() : "",
+      email: normalizedEmail,
       passwordHash: password, // Mongoose pre-save hook will hash this
       role: assignedRole,
       preferredLanguage: preferredLanguage || "English",
@@ -64,10 +66,9 @@ const register = async (req, res, next) => {
  */
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const normalizedEmail = email ? email.trim().toLowerCase() : "";
 
-    // Select passwordHash explicitly since it is excluded by default
-    const user = await User.findOne({ email }).select("+passwordHash");
+    const user = await User.findOne({ email: normalizedEmail }).select("+passwordHash");
     if (!user) {
       return sendError(res, 401, "Invalid email or password.");
     }
