@@ -7,15 +7,13 @@ import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { Unauthorized } from './pages/auth/Unauthorized';
 
-// Student Pages (Placeholders)
-const Dashboard = () => <div>Student Dashboard</div>;
+import { StudentLayout } from './layouts/StudentLayout';
+import { Dashboard } from './pages/student/Dashboard';
+
 const Languages = () => <div>Language Selection</div>;
 const Exercise = () => <div>Reading Exercise</div>;
 const Result = () => <div>Reading Result</div>;
 const Progress = () => <div>Student Progress</div>;
-
-// Layouts (Placeholders)
-const StudentLayout = ({ children }) => <div><nav>Student Nav</nav><main>{children}</main></div>;
 
 function App() {
   return (
