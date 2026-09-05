@@ -1,17 +1,83 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import StatCard from '../../components/common/StatCard'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
-import { adminStudents } from '../../data/adminMockData'
+import LoadingState from '../../components/common/LoadingState'
+import api from '../../services/api'
 
 export default function AdminStudents() {
   const navigate = useNavigate()
-  const [students, setStudents] = useState(adminStudents)
+  const [students, setStudents] = useState([])
+  const [teachers, setTeachers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [assignOpen, setAssignOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState(null)
-  const [teacherValue, setTeacherValue] = useState('Aisha Patel')
+  const [teacherValue, setTeacherValue] = useState('')
+
+  const fetchData = async () => {
+    try {
+      const [stuRes, teachRes] = await Promise.all([
+        api.get('/admin/students'),
+        api.get('/admin/teachers'),
+      ])
+
+      if (stuRes.data?.success && Array.isArray(stuRes.data?.data?.students)) {
+        setStudents(stuRes.data.data.students.map((s) => ({
+          id: s._id,
+          _id: s._id,
+          name: s.name,
+          email: s.email,
+          teacher: s.assignedTeacher?.name || 'Unassigned',
+          teacherId: s.assignedTeacher?._id || '',
+          language: s.preferredLanguage || 'English',
+          score: s.currentScore || 0,
+          status: s.status ? (s.status.charAt(0).toUpperCase() + s.status.slice(1)) : 'Active',
+        })))
+      }
+
+      if (teachRes.data?.success && Array.isArray(teachRes.data?.data?.teachers)) {
+        setTeachers(teachRes.data.data.teachers)
+        if (teachRes.data.data.teachers.length > 0) {
+          setTeacherValue(teachRes.data.data.teachers[0]._id)
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load live students/teachers:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleAssignTeacher = async () => {
+    if (!selectedStudent || !teacherValue) return
+    try {
+      await api.put('/admin/assign-student', {
+        studentId: selectedStudent.id,
+        teacherId: teacherValue,
+      })
+      await fetchData()
+      setAssignOpen(false)
+    } catch (err) {
+      console.warn('Failed to assign teacher:', err)
+    }
+  }
+
+  const handleDeactivate = async (studentId) => {
+    try {
+      await api.put(`/admin/users/${studentId}`, { status: 'inactive' })
+      setStudents((prev) => prev.map((item) => (item.id === studentId ? { ...item, status: 'Inactive' } : item)))
+    } catch (err) {
+      console.warn('Failed to deactivate student:', err)
+    }
+  }
+
+  if (loading) return <LoadingState message="Loading students..." />
 
   const total = students.length
   const active = students.filter((student) => student.status === 'Active').length
@@ -43,41 +109,47 @@ export default function AdminStudents() {
             </tr>
           </thead>
           <tbody>
-            {students.map((student) => (
-              <tr key={student.id}>
-                <td>{student.name}</td>
-                <td>{student.email}</td>
-                <td>{student.teacher}</td>
-                <td>{student.language}</td>
-                <td>{student.score}%</td>
-                <td>{student.status}</td>
-                <td>
-                  <div className="inline-actions">
-                    <Button size="sm" variant="secondary" onClick={() => navigate(`/admin/students/${student.id}`)}>View Profile</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setSelectedStudent(student) || setAssignOpen(true)}>Assign Teacher</Button>
-                    <Button size="sm" variant="danger" onClick={() => setStudents((prev) => prev.map((item) => item.id === student.id ? { ...item, status: 'Inactive' } : item))}>Deactivate</Button>
-                  </div>
+            {students.length === 0 ? (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
+                  No students registered on the platform yet.
                 </td>
               </tr>
-            ))}
+            ) : (
+              students.map((student) => (
+                <tr key={student.id}>
+                  <td><strong>{student.name}</strong></td>
+                  <td>{student.email}</td>
+                  <td>{student.teacher}</td>
+                  <td>{student.language}</td>
+                  <td>{student.score > 0 ? `${student.score}%` : 'No attempts'}</td>
+                  <td>{student.status}</td>
+                  <td>
+                    <div className="inline-actions">
+                      <Button size="sm" variant="secondary" onClick={() => navigate(`/admin/students/${student.id}`)}>View Profile</Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setSelectedStudent(student); setAssignOpen(true) }}>Assign Teacher</Button>
+                      <Button size="sm" variant="danger" onClick={() => handleDeactivate(student.id)}>Deactivate</Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       <Modal isOpen={assignOpen} title="Assign Teacher" onClose={() => setAssignOpen(false)}>
-        <div className="form-field">
-          <label htmlFor="teacherSelect">Teacher</label>
+        <p>Assign <strong>{selectedStudent?.name}</strong> to a teacher:</p>
+        <div className="form-field" style={{ marginTop: 16 }}>
+          <label htmlFor="teacherSelect">Select Teacher</label>
           <select id="teacherSelect" value={teacherValue} onChange={(event) => setTeacherValue(event.target.value)}>
-            <option value="Aisha Patel">Aisha Patel</option>
-            <option value="Nisha Reddy">Nisha Reddy</option>
-            <option value="Arun Singh">Arun Singh</option>
+            {teachers.map((t) => (
+              <option key={t._id} value={t._id}>{t.name} ({t.email})</option>
+            ))}
           </select>
         </div>
         <div style={{ marginTop: 18 }}>
-          <Button onClick={() => {
-            setStudents((prev) => prev.map((student) => student.id === selectedStudent?.id ? { ...student, teacher: teacherValue } : student))
-            setAssignOpen(false)
-          }}>Save Assignment</Button>
+          <Button onClick={handleAssignTeacher}>Save Assignment</Button>
         </div>
       </Modal>
     </div>

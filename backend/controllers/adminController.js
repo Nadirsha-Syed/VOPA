@@ -65,6 +65,18 @@ const getAdminDashboard = async (req, res, next) => {
       .populate("studentId", "name email")
       .populate("exerciseId", "title difficulty language");
 
+    const formattedRecentActivity = recentActivity.map((ra) => ({
+      id: ra._id.toString(),
+      studentName: ra.studentId?.name || "Student",
+      studentEmail: ra.studentId?.email || "",
+      exerciseTitle: ra.exerciseId?.title || "Reading Exercise",
+      language: ra.exerciseId?.language || ra.language || "English",
+      difficulty: ra.exerciseId?.difficulty || "easy",
+      score: ra.score || 0,
+      createdAt: ra.createdAt,
+      timeAgo: new Date(ra.createdAt).toLocaleDateString(),
+    }));
+
     // 6. Most practiced exercises
     const mostUsedExercisesAgg = await ReadingAttempt.aggregate([
       {
@@ -97,6 +109,149 @@ const getAdminDashboard = async (req, res, next) => {
       },
     ]);
 
+    let mostUsedExercises = mostUsedExercisesAgg;
+    if (mostUsedExercises.length === 0) {
+      const sampleExercises = await Exercise.find({ status: "active" }).limit(5).select("title language difficulty");
+      mostUsedExercises = sampleExercises.map((e) => ({
+        _id: e._id,
+        title: e.title,
+        language: e.language,
+        difficulty: e.difficulty,
+        attemptCount: 0,
+        avgScore: 0,
+      }));
+    }
+
+    // 7. Score Trend over time
+    const scoreTrendAgg = await ReadingAttempt.aggregate([
+      { $match: { score: { $ne: null } } },
+      { $sort: { createdAt: 1 } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          avgScore: { $avg: "$score" },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          score: { $round: ["$avgScore", 1] },
+        },
+      },
+    ]);
+
+    // 8. Language breakdown
+    const languageUsageAgg = await ReadingAttempt.aggregate([
+      {
+        $group: {
+          _id: "$language",
+          count: { $sum: 1 },
+          avgScore: { $avg: "$score" },
+        },
+      },
+      { $sort: { count: -1 } },
+      {
+        $project: {
+          _id: 0,
+          language: "$_id",
+          value: "$count",
+          avgScore: { $round: ["$avgScore", 1] },
+        },
+      },
+    ]);
+
+    let languageUsage = languageUsageAgg;
+    if (!languageUsage || languageUsage.length === 0) {
+      const exerciseLangAgg = await Exercise.aggregate([
+        {
+          $group: {
+            _id: "$language",
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            language: "$_id",
+            value: "$count",
+          },
+        },
+      ]);
+      languageUsage = exerciseLangAgg;
+    }
+    if (!languageUsage || languageUsage.length === 0) {
+      languageUsage = [
+        { language: "English", value: 0 },
+        { language: "Hindi", value: 0 },
+        { language: "Tamil", value: 0 },
+      ];
+    }
+
+    // 9. Reading Attempts trend
+    const readingAttemptsTrend = await ReadingAttempt.aggregate([
+      { $sort: { createdAt: 1 } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          attempts: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+      { $limit: 10 },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          attempts: 1,
+        },
+      },
+    ]);
+
+    // 10. Student score distribution / improvement
+    const studentImprovementFacet = await ReadingAttempt.aggregate([
+      { $match: { score: { $ne: null } } },
+      {
+        $facet: {
+          below60: [{ $match: { score: { $lt: 60 } } }, { $count: "count" }],
+          between60And74: [{ $match: { score: { $gte: 60, $lt: 75 } } }, { $count: "count" }],
+          between75And89: [{ $match: { score: { $gte: 75, $lt: 90 } } }, { $count: "count" }],
+          above90: [{ $match: { score: { $gte: 90 } } }, { $count: "count" }],
+        },
+      },
+    ]);
+    const facetData = studentImprovementFacet[0] || {};
+    const scoreDistribution = [
+      { name: '<60%', improvement: facetData.below60?.[0]?.count || 0 },
+      { name: '60-74%', improvement: facetData.between60And74?.[0]?.count || 0 },
+      { name: '75-89%', improvement: facetData.between75And89?.[0]?.count || 0 },
+      { name: '90%+', improvement: facetData.above90?.[0]?.count || 0 },
+    ];
+
+    // 11. Mistake frequency across attempts
+    const mistakeFrequencyAgg = await ReadingAttempt.aggregate([
+      { $match: { score: { $ne: null } } },
+      { $unwind: "$mistakes" },
+      {
+        $group: {
+          _id: { $toLower: "$mistakes" },
+          value: { $sum: 1 },
+        },
+      },
+      { $sort: { value: -1 } },
+      { $limit: 6 },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          value: 1,
+        },
+      },
+    ]);
+
     return sendSuccess(
       res,
       200,
@@ -112,8 +267,13 @@ const getAdminDashboard = async (req, res, next) => {
           studentsNeedingAttentionCount: studentsNeedingAttentionAgg.length,
         },
         activeLanguages,
-        mostUsedExercises: mostUsedExercisesAgg,
-        recentActivity,
+        mostUsedExercises,
+        recentActivity: formattedRecentActivity,
+        scoreTrend: scoreTrendAgg,
+        languageUsage,
+        readingAttemptsTrend,
+        studentImprovement: scoreDistribution,
+        mistakeFrequency: mistakeFrequencyAgg,
       },
       "Admin dashboard metrics fetched successfully."
     );
@@ -193,7 +353,72 @@ const getUserById = async (req, res, next) => {
       return sendError(res, 404, "User not found.");
     }
 
-    return sendSuccess(res, 200, { user }, "User fetched successfully.");
+    let extraData = {};
+
+    if (user.role === "student") {
+      const attempts = await ReadingAttempt.find({ studentId: user._id })
+        .sort({ createdAt: -1 })
+        .populate("exerciseId", "title language difficulty");
+
+      const totalAttempts = attempts.length;
+      const averageScore = totalAttempts > 0
+        ? Math.round(attempts.reduce((sum, a) => sum + (a.score || 0), 0) / totalAttempts)
+        : 0;
+
+      const readingHistory = [...new Set(attempts.map(a => a.exerciseId?.title || "Exercise"))].slice(0, 5);
+      const recentAttempts = attempts.slice(0, 10).map(a => ({
+        id: a._id,
+        exercise: a.exerciseId?.title || "Exercise",
+        language: a.exerciseId?.language || "English",
+        score: a.score || 0,
+        mistakes: Array.isArray(a.mistakes) ? a.mistakes : [],
+        date: new Date(a.createdAt).toLocaleDateString(),
+        createdAt: a.createdAt,
+      }));
+
+      const fluencyScore = totalAttempts > 0 ? Math.min(100, Math.round(averageScore * 0.95)) : 0;
+      const compScore = totalAttempts > 0 ? Math.min(100, Math.round(averageScore * 1.02)) : 0;
+      const accuracyScore = averageScore;
+
+      extraData = {
+        totalAttempts,
+        averageScore,
+        readingHistory,
+        recentAttempts,
+        scoresByCategory: [
+          { name: "Reading", value: accuracyScore },
+          { name: "Comprehension", value: compScore },
+          { name: "Fluency", value: fluencyScore },
+        ],
+      };
+    } else if (user.role === "teacher") {
+      const teacherStudentList = user.assignedStudents || [];
+      const assignedCount = teacherStudentList.length;
+
+      const studentAttempts = await ReadingAttempt.find({
+        studentId: { $in: teacherStudentList.map((s) => s._id) },
+      })
+        .sort({ createdAt: -1 })
+        .populate("studentId", "name")
+        .populate("exerciseId", "title")
+        .limit(10);
+
+      const classAvg = studentAttempts.length > 0
+        ? Math.round(studentAttempts.reduce((sum, a) => sum + (a.score || 0), 0) / studentAttempts.length)
+        : 0;
+
+      const activity = studentAttempts.map((a) =>
+        `${a.studentId?.name || "Student"} completed "${a.exerciseId?.title || "Reading"}" with ${a.score}%`
+      );
+
+      extraData = {
+        assignedStudentsCount: assignedCount,
+        classPerformance: `${classAvg}%`,
+        activity: activity.length > 0 ? activity : ["No student reading activity recorded yet"],
+      };
+    }
+
+    return sendSuccess(res, 200, { user, ...extraData }, "User fetched successfully.");
   } catch (error) {
     next(error);
   }
@@ -576,8 +801,41 @@ const deleteExercise = async (req, res, next) => {
  */
 const getAllLanguages = async (req, res, next) => {
   try {
-    const languages = await Language.find().sort({ name: 1 });
-    return sendSuccess(res, 200, { languages }, "Languages fetched successfully.");
+    let languages = await Language.find().sort({ name: 1 });
+
+    if (!languages || languages.length === 0) {
+      const defaults = [
+        { name: "English", code: "EN", enabled: true, speechConfiguration: { provider: "browser/default", locale: "en-IN" } },
+        { name: "Hindi", code: "HI", enabled: true, speechConfiguration: { provider: "browser/default", locale: "hi-IN" } },
+        { name: "Tamil", code: "TA", enabled: true, speechConfiguration: { provider: "browser/default", locale: "ta-IN" } },
+        { name: "Telugu", code: "TE", enabled: true, speechConfiguration: { provider: "browser/default", locale: "te-IN" } },
+        { name: "Spanish", code: "ES", enabled: true, speechConfiguration: { provider: "browser/default", locale: "es-ES" } },
+        { name: "Marathi", code: "MR", enabled: true, speechConfiguration: { provider: "browser/default", locale: "mr-IN" } },
+      ];
+      for (const item of defaults) {
+        await Language.findOneAndUpdate({ code: item.code }, item, { upsert: true, new: true });
+      }
+      languages = await Language.find().sort({ name: 1 });
+    }
+
+    // Count exercises per language dynamically
+    const exerciseCounts = await Exercise.aggregate([
+      { $group: { _id: { $toLower: "$language" }, count: { $sum: 1 } } },
+    ]);
+    const countMap = {};
+    exerciseCounts.forEach((c) => {
+      if (c._id) countMap[c._id.toLowerCase()] = c.count;
+    });
+
+    const languagesWithCounts = languages.map((lang) => {
+      const obj = lang.toObject();
+      const nameKey = (obj.name || "").toLowerCase();
+      const codeKey = (obj.code || "").toLowerCase();
+      obj.exerciseCount = countMap[nameKey] || countMap[codeKey] || 0;
+      return obj;
+    });
+
+    return sendSuccess(res, 200, { languages: languagesWithCounts }, "Languages fetched successfully.");
   } catch (error) {
     next(error);
   }
@@ -663,8 +921,9 @@ const deleteLanguage = async (req, res, next) => {
 };
 
 module.exports = {
-  // Dashboard
+  // Dashboard & Analytics
   getAdminDashboard,
+  getAdminAnalytics: getAdminDashboard,
   // Users
   getAllUsers,
   getUserById,

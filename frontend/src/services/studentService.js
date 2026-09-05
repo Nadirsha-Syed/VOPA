@@ -324,22 +324,50 @@ const getStudentAttempts = async () => {
 
   if (userId && userId.length === 24) {
     try {
+      // Sync any local attempts that weren't sent to MongoDB yet
+      const syncKey = `vopa_synced_${userId}`;
+      let syncedIds = [];
+      try {
+        syncedIds = JSON.parse(localStorage.getItem(syncKey) || '[]');
+      } catch (e) {}
+      const syncedSet = new Set(syncedIds);
+
+      for (const att of localAttempts) {
+        if (att.id && !syncedSet.has(att.id) && !att.id.startsWith('backend_')) {
+          try {
+            await api.post('/readings/record', {
+              exerciseId: att.exerciseId,
+              exerciseTitle: att.exerciseTitle || att.title || 'Reading Practice',
+              expectedText: att.expectedText || 'Sample reading text',
+              recognizedText: att.recognizedText || '',
+              language: att.language || 'English',
+              score: att.score || 0,
+              wordsCorrect: att.wordsCorrect || 0,
+              totalWords: att.totalWords || 0,
+            });
+            syncedSet.add(att.id);
+          } catch (syncErr) {
+            // non-blocking
+          }
+        }
+      }
+      localStorage.setItem(syncKey, JSON.stringify([...syncedSet]));
+
+      // Fetch official attempts from backend
       const res = await api.get(`/readings/student/${userId}`);
       if (res.data?.success && Array.isArray(res.data?.data?.attempts)) {
-        const backendAttempts = res.data.data.attempts.map(att => ({
-          id: att._id,
+        const backendAttempts = res.data.data.attempts.map((att) => ({
+          id: `backend_${att._id}`,
+          _id: att._id,
           exerciseId: att.exerciseId?._id || att.exerciseId,
-          language: att.exerciseId?.language || 'English',
+          language: att.exerciseId?.language || att.language || 'English',
           score: att.score || 0,
           date: att.createdAt,
-          timestamp: new Date(att.createdAt).getTime()
+          timestamp: new Date(att.createdAt).getTime(),
         }));
-        const existingIds = new Set(localAttempts.map(a => a.id));
-        backendAttempts.forEach(ba => {
-          if (!existingIds.has(ba.id)) {
-            localAttempts.push(ba);
-          }
-        });
+        if (backendAttempts.length > 0) {
+          return backendAttempts;
+        }
       }
     } catch (e) {
       // Backend not reachable or student has no attempts, fallback gracefully
@@ -350,7 +378,7 @@ const getStudentAttempts = async () => {
 };
 
 const studentService = {
-  recordAttempt: (attemptData) => {
+  recordAttempt: async (attemptData) => {
     try {
       let userId = 'default_student';
       const userStr = localStorage.getItem('vopa_user');
@@ -363,15 +391,41 @@ const studentService = {
       const newAttempt = {
         id: `att_${Date.now()}`,
         exerciseId: attemptData.exerciseId,
+        exerciseTitle: attemptData.exerciseTitle || 'Reading Practice',
+        expectedText: attemptData.expectedText || '',
+        recognizedText: attemptData.recognizedText || '',
         language: attemptData.language || 'English',
         score: attemptData.score || 0,
         wordsCorrect: attemptData.wordsCorrect || 0,
         totalWords: attemptData.totalWords || 0,
         date: new Date().toISOString(),
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
       existing.unshift(newAttempt);
       localStorage.setItem(key, JSON.stringify(existing));
+
+      // Post directly to backend MongoDB
+      try {
+        await api.post('/readings/record', {
+          exerciseId: attemptData.exerciseId,
+          exerciseTitle: attemptData.exerciseTitle || 'Reading Practice',
+          expectedText: attemptData.expectedText || 'Reading exercise text',
+          recognizedText: attemptData.recognizedText || '',
+          language: attemptData.language || 'English',
+          score: attemptData.score || 0,
+          wordsCorrect: attemptData.wordsCorrect || 0,
+          totalWords: attemptData.totalWords || 0,
+        });
+
+        // Mark as synced
+        const syncKey = `vopa_synced_${userId}`;
+        const syncedIds = JSON.parse(localStorage.getItem(syncKey) || '[]');
+        syncedIds.push(newAttempt.id);
+        localStorage.setItem(syncKey, JSON.stringify(syncedIds));
+      } catch (err) {
+        console.warn('Failed to record attempt in backend MongoDB:', err);
+      }
+
       return newAttempt;
     } catch (e) {
       console.warn("Failed to record attempt:", e);

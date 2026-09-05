@@ -30,6 +30,7 @@ router.use(protect, requireRole("admin"));
 
 // ── 1. Platform Analytics ─────────────────────────────────────────────────────
 router.get("/dashboard", getAdminDashboard);
+router.get("/analytics", getAdminDashboard);
 
 // ── 2. User Management ────────────────────────────────────────────────────────
 router.get("/users", getAllUsers);

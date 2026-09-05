@@ -12,7 +12,7 @@ export const Result = () => {
   const recordedRef = useRef(false);
   
   // Get data passed from the Exercise screen
-  const { transcript = '', originalText = '', language } = location.state || {};
+  const { transcript = '', originalText = '', language, title } = location.state || {};
 
   // Simple accuracy calculation (mock logic for MVP)
   // In a real app, this would be a complex NLP matching algorithm
@@ -51,13 +51,16 @@ export const Result = () => {
       recordedRef.current = true;
       studentService.recordAttempt({
         exerciseId: id || 'ex1',
+        exerciseTitle: title || 'Reading Exercise',
+        expectedText: originalText,
+        recognizedText: transcript,
         language: language || 'English',
         score,
         wordsCorrect: matchedWords,
         totalWords
       });
     }
-  }, [id, originalText, totalWords, matchedWords, score, language]);
+  }, [id, originalText, totalWords, matchedWords, score, language, title, transcript]);
 
   const getFeedbackMessage = (score) => {
     if (score >= 90) return "Outstanding! You're a reading star! 🌟";

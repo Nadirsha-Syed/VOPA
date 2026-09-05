@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import PageHeader from '../../components/common/PageHeader'
 import SearchBar from '../../components/common/SearchBar'
 import FilterBar from '../../components/common/FilterBar'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
 import Pagination from '../../components/common/Pagination'
-import { adminUsers } from '../../data/adminMockData'
+import LoadingState from '../../components/common/LoadingState'
 import api from '../../services/api'
 
 const pageSize = 5
@@ -19,7 +19,34 @@ export default function AdminUsers() {
   const [mode, setMode] = useState('create')
   const [selectedUser, setSelectedUser] = useState(null)
   const [isConfirmOpen, setConfirmOpen] = useState(false)
-  const [users, setUsers] = useState(adminUsers)
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get('/admin/users?limit=100')
+      if (res.data?.success && Array.isArray(res.data?.data?.users)) {
+        setUsers(res.data.data.users.map((u) => ({
+          id: u._id,
+          _id: u._id,
+          name: u.name,
+          email: u.email,
+          role: u.role ? (u.role.charAt(0).toUpperCase() + u.role.slice(1)) : 'Student',
+          preferredLanguage: u.preferredLanguage || 'English',
+          status: u.status ? (u.status.charAt(0).toUpperCase() + u.status.slice(1)) : 'Active',
+          createdDate: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : '2026-09-05',
+        })))
+      }
+    } catch (err) {
+      console.warn('Could not fetch live users:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   const filtered = useMemo(() => users.filter((user) => {
     const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) || user.email.toLowerCase().includes(search.toLowerCase())

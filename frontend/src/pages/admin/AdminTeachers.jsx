@@ -1,17 +1,78 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import StatCard from '../../components/common/StatCard'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
-import { adminTeachers } from '../../data/adminMockData'
+import LoadingState from '../../components/common/LoadingState'
+import api from '../../services/api'
 
 export default function AdminTeachers() {
   const navigate = useNavigate()
-  const [teachers, setTeachers] = useState(adminTeachers)
+  const [teachers, setTeachers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [isModalOpen, setModalOpen] = useState(false)
   const [isAssignOpen, setAssignOpen] = useState(false)
   const [selectedTeacher, setSelectedTeacher] = useState(null)
+
+  const fetchTeachers = async () => {
+    try {
+      const res = await api.get('/admin/teachers')
+      if (res.data?.success && Array.isArray(res.data?.data?.teachers)) {
+        setTeachers(res.data.data.teachers.map((t) => ({
+          id: t._id,
+          _id: t._id,
+          name: t.name,
+          email: t.email,
+          assignedStudents: Array.isArray(t.assignedStudents) ? t.assignedStudents.length : 0,
+          classPerformance: t.classPerformance || 'Active',
+          status: t.status ? (t.status.charAt(0).toUpperCase() + t.status.slice(1)) : 'Active',
+        })))
+      }
+    } catch (err) {
+      console.warn('Could not fetch live teachers:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTeachers()
+  }, [])
+
+  const handleAddTeacher = async (e) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const name = form.elements.name.value
+    const email = form.elements.email.value
+    const password = form.elements.password.value || 'Teacher@123'
+    const status = form.elements.status.value
+
+    try {
+      await api.post('/admin/users', {
+        name,
+        email,
+        password,
+        role: 'teacher',
+        status: status.toLowerCase(),
+      })
+      await fetchTeachers()
+      setModalOpen(false)
+    } catch (err) {
+      console.warn('Could not create teacher:', err)
+    }
+  }
+
+  const handleDeactivate = async (teacherId) => {
+    try {
+      await api.put(`/admin/users/${teacherId}`, { status: 'inactive' })
+      setTeachers((prev) => prev.map((t) => (t.id === teacherId ? { ...t, status: 'Inactive' } : t)))
+    } catch (err) {
+      console.warn('Could not deactivate teacher:', err)
+    }
+  }
+
+  if (loading) return <LoadingState message="Loading teachers..." />
 
   const total = teachers.length
   const active = teachers.filter((teacher) => teacher.status === 'Active').length
@@ -40,34 +101,42 @@ export default function AdminTeachers() {
             </tr>
           </thead>
           <tbody>
-            {teachers.map((teacher) => (
-              <tr key={teacher.id}>
-                <td>{teacher.name}</td>
-                <td>{teacher.email}</td>
-                <td>{teacher.assignedStudents}</td>
-                <td>{teacher.classPerformance}</td>
-                <td>{teacher.status}</td>
-                <td>
-                  <div className="inline-actions">
-                    <Button size="sm" variant="secondary" onClick={() => navigate(`/admin/teachers/${teacher.id}`)}>View</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setSelectedTeacher(teacher) || setAssignOpen(true)}>Assign Students</Button>
-                    <Button size="sm" variant="danger" onClick={() => setTeachers((prev) => prev.map((item) => item.id === teacher.id ? { ...item, status: 'Inactive' } : item))}>Deactivate</Button>
-                  </div>
+            {teachers.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
+                  No teachers registered on the platform yet.
                 </td>
               </tr>
-            ))}
+            ) : (
+              teachers.map((teacher) => (
+                <tr key={teacher.id}>
+                  <td><strong>{teacher.name}</strong></td>
+                  <td>{teacher.email}</td>
+                  <td>{teacher.assignedStudents}</td>
+                  <td>{teacher.classPerformance}</td>
+                  <td>{teacher.status}</td>
+                  <td>
+                    <div className="inline-actions">
+                      <Button size="sm" variant="secondary" onClick={() => navigate(`/admin/teachers/${teacher.id}`)}>View</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setSelectedTeacher(teacher) || setAssignOpen(true)}>Assign Students</Button>
+                      <Button size="sm" variant="danger" onClick={() => handleDeactivate(teacher.id)}>Deactivate</Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       <Modal isOpen={isModalOpen} title="Add Teacher" onClose={() => setModalOpen(false)}>
-        <form>
+        <form onSubmit={handleAddTeacher}>
           <div className="form-grid">
-            <div className="form-field"><label>Name</label><input defaultValue="" /></div>
-            <div className="form-field"><label>Email</label><input type="email" defaultValue="" /></div>
-            <div className="form-field"><label>Password</label><input type="password" defaultValue="" /></div>
-            <div className="form-field"><label>Status</label><select defaultValue="Active"><option>Active</option><option>Inactive</option></select></div>
-            <div className="form-field full"><Button onClick={() => setModalOpen(false)}>Save Teacher</Button></div>
+            <div className="form-field"><label>Name</label><input name="name" required /></div>
+            <div className="form-field"><label>Email</label><input name="email" type="email" required /></div>
+            <div className="form-field"><label>Password</label><input name="password" type="password" defaultValue="Teacher@123" /></div>
+            <div className="form-field"><label>Status</label><select name="status" defaultValue="Active"><option>Active</option><option>Inactive</option></select></div>
+            <div className="form-field full"><Button type="submit">Save Teacher</Button></div>
           </div>
         </form>
       </Modal>

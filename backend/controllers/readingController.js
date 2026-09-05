@@ -1,4 +1,5 @@
-﻿const ReadingAttempt = require("../models/ReadingAttempt");
+const mongoose = require("mongoose");
+const ReadingAttempt = require("../models/ReadingAttempt");
 const ImprovementPlan = require("../models/ImprovementPlan");
 const Exercise = require("../models/Exercise");
 const { transcribeAudio } = require("../services/speechService");
@@ -169,4 +170,122 @@ const getStudentReadings = async (req, res, next) => {
   }
 };
 
-module.exports = { submitReading, getReadingById, getStudentReadings };
+/**
+ * @desc    Record a completed reading attempt directly (e.g. from browser speech recognition)
+ * @route   POST /api/readings/record
+ * @access  Private (Student, Teacher, Admin)
+ */
+const recordReadingAttempt = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    const {
+      exerciseId,
+      exerciseTitle,
+      expectedText: bodyExpectedText,
+      recognizedText = "",
+      language = "English",
+      score = 0,
+      mistakes = [],
+      wordsCorrect = 0,
+      totalWords = 0,
+    } = req.body;
+
+    let exercise = null;
+    if (exerciseId && mongoose.Types.ObjectId.isValid(exerciseId)) {
+      exercise = await Exercise.findById(exerciseId);
+    }
+
+    if (!exercise && exerciseTitle) {
+      exercise = await Exercise.findOne({
+        $or: [
+          { title: new RegExp(`^${exerciseTitle}$`, "i") },
+          { text: new RegExp(`^${bodyExpectedText || exerciseTitle}$`, "i") },
+        ],
+      });
+    }
+
+    if (!exercise) {
+      exercise = await Exercise.findOne({
+        language: new RegExp(`^${language}$`, "i"),
+      });
+    }
+
+    if (!exercise) {
+      exercise = await Exercise.create({
+        title: exerciseTitle || `${language} Reading Practice`,
+        text: bodyExpectedText || "Sample reading exercise",
+        language: language,
+        difficulty: "easy",
+        category: "general",
+        status: "active",
+        createdBy: studentId,
+      });
+    }
+
+    const expectedText = bodyExpectedText || exercise.text || exercise.title;
+
+    // Generate reading feedback
+    let feedback = "";
+    if (score >= 90) {
+      feedback = "Outstanding! Excellent accuracy and pronunciation.";
+    } else if (score >= 75) {
+      feedback = "Great job! Keep practicing to increase fluency.";
+    } else if (score >= 60) {
+      feedback = "Fair attempt. Try practicing difficult words again.";
+    } else {
+      feedback = "Good effort. Practice reading aloud once more.";
+    }
+
+    // Create ReadingAttempt in MongoDB
+    const readingAttempt = await ReadingAttempt.create({
+      studentId,
+      exerciseId: exercise._id,
+      language: language || exercise.language || "English",
+      expectedText,
+      recognizedText,
+      score: Math.min(100, Math.max(0, Math.round(score))),
+      mistakes: Array.isArray(mistakes) ? mistakes : [],
+      feedback,
+      status: "completed",
+    });
+
+    // Create or update ImprovementPlan in MongoDB
+    try {
+      const weakAreas = score < 75 ? ["Pronunciation", "Fluency"] : ["Comprehension"];
+      await ImprovementPlan.create({
+        studentId,
+        readingAttemptId: readingAttempt._id,
+        weakAreas,
+        recommendations: [
+          score >= 80 ? "Advance to higher difficulty reading" : "Review tricky words from this passage",
+        ],
+        difficulty: score >= 80 ? "medium" : "easy",
+        status: "active",
+      });
+    } catch (e) {
+      // Non-blocking
+    }
+
+    return sendSuccess(
+      res,
+      201,
+      {
+        attempt: {
+          id: readingAttempt._id,
+          exerciseId: exercise._id,
+          exerciseTitle: exercise.title,
+          language: readingAttempt.language,
+          score: readingAttempt.score,
+          mistakes: readingAttempt.mistakes,
+          feedback: readingAttempt.feedback,
+          createdAt: readingAttempt.createdAt,
+        },
+      },
+      "Reading attempt recorded successfully in database"
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { submitReading, getReadingById, getStudentReadings, recordReadingAttempt };

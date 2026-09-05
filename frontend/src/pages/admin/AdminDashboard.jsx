@@ -3,6 +3,7 @@ import { BarChart, Bar, CartesianGrid, LineChart, Line, XAxis, YAxis, Responsive
 import PageHeader from '../../components/common/PageHeader'
 import StatCard from '../../components/common/StatCard'
 import ChartCard from '../../components/charts/ChartCard'
+import LoadingState from '../../components/common/LoadingState'
 import api from '../../services/api'
 
 export default function AdminDashboard() {
@@ -25,6 +26,8 @@ export default function AdminDashboard() {
     fetchAdminDash()
   }, [])
 
+  if (isLoading) return <LoadingState message="Loading platform overview..." />
+
   const stats = [
     { label: 'Total Students', value: data?.stats?.totalStudents ?? 0, change: 'Registered' },
     { label: 'Total Teachers', value: data?.stats?.totalTeachers ?? 0, change: 'Active' },
@@ -32,27 +35,29 @@ export default function AdminDashboard() {
     { label: 'Avg Platform Score', value: data?.stats?.averageScore ? `${data.stats.averageScore}%` : '0%', change: 'Accuracy' },
   ]
 
-  const languageUsage = data?.activeLanguages?.map(lang => ({
-    language: lang.name,
-    value: 1
-  })) || [
-    { language: 'English', value: 1 },
-    { language: 'Hindi', value: 1 },
-    { language: 'Tamil', value: 1 },
-  ]
+  const languageUsage = (data?.languageUsage && data.languageUsage.length > 0)
+    ? data.languageUsage
+    : [
+        { language: 'English', value: 0 },
+        { language: 'Hindi', value: 0 },
+        { language: 'Tamil', value: 0 },
+      ]
 
-  const scoreTrend = [
-    { name: 'Mon', score: 0 },
-    { name: 'Tue', score: 0 },
-    { name: 'Wed', score: 0 },
-    { name: 'Thu', score: 0 },
-    { name: 'Fri', score: 0 },
-    { name: 'Sat', score: 0 },
-    { name: 'Sun', score: data?.stats?.averageScore || 0 },
-  ]
-
+  const scoreTrend = data?.scoreTrend || []
   const mostUsedExercises = data?.mostUsedExercises || []
   const recentActivity = data?.recentActivity || []
+
+  const emptyChartStyle = {
+    height: '100%',
+    minHeight: 220,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#6b7280',
+    textAlign: 'center',
+    padding: '24px',
+    fontSize: '0.9rem',
+  }
 
   return (
     <div>
@@ -66,17 +71,21 @@ export default function AdminDashboard() {
 
       <div className="grid-2">
         <ChartCard title="Platform Score Accuracy">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={scoreTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
-              <XAxis dataKey="name" />
-              <YAxis domain={[0, 100]} />
-              <Line type="monotone" dataKey="score" stroke="#365df5" strokeWidth={3} dot={{ r: 4 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          {scoreTrend.length === 0 ? (
+            <div style={emptyChartStyle}>No score trends recorded yet. Practice sessions will populate this timeline.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={scoreTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+                <XAxis dataKey="name" />
+                <YAxis domain={[0, 100]} />
+                <Line type="monotone" dataKey="score" stroke="#365df5" strokeWidth={3} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
 
-        <ChartCard title="Active Language Systems">
+        <ChartCard title="Language Distribution">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={languageUsage}>
               <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
@@ -96,7 +105,14 @@ export default function AdminDashboard() {
           ) : (
             <ul className="list">
               {mostUsedExercises.map((exercise, index) => (
-                <li key={exercise.title || index}><strong>#{index + 1}</strong> {exercise.title} · {exercise.attemptsCount} attempts</li>
+                <li key={exercise._id || exercise.title || index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>
+                    <strong>#{index + 1}</strong> {exercise.title} ({exercise.language || 'English'})
+                  </span>
+                  <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                    {exercise.attemptCount ?? exercise.attemptsCount ?? 0} attempts
+                  </span>
+                </li>
               ))}
             </ul>
           )}
@@ -105,10 +121,20 @@ export default function AdminDashboard() {
         <div className="panel">
           <h3>Recent Platform Activity</h3>
           {recentActivity.length === 0 ? (
-            <p style={{ color: '#6b7280', padding: '16px 0' }}>Platform operational · MongoDB Atlas synchronized · Authentication active.</p>
+            <p style={{ color: '#6b7280', padding: '16px 0' }}>No reading attempts recorded yet on the platform.</p>
           ) : (
             <ul className="list">
-              {recentActivity.map((item, idx) => <li key={idx}>{item}</li>)}
+              {recentActivity.map((item, idx) => (
+                <li key={item.id || idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <strong>{item.studentName}</strong> read <em>{item.exerciseTitle}</em> ({item.language})
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: 600, color: item.score >= 75 ? '#1e9f67' : '#d99218' }}>{item.score}%</span>
+                    <small style={{ color: '#6b7280' }}>{item.timeAgo}</small>
+                  </div>
+                </li>
+              ))}
             </ul>
           )}
         </div>

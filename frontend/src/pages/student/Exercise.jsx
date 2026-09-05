@@ -84,7 +84,12 @@ export const Exercise = () => {
   const handleFinish = () => {
     stopListening();
     navigate(`/student/exercises/${exercise?.id || 'ex1'}/result`, { 
-      state: { transcript, originalText: exercise?.content, language: exercise?.language }
+      state: {
+        transcript,
+        originalText: exercise?.content,
+        language: exercise?.language,
+        title: exercise?.title,
+      }
     });
   };
 
