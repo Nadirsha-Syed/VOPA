@@ -41,6 +41,8 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
       totalStudents: 0,
       totalAttempts: 0,
       classAverageScore: 0,
+      highestScore: 0,
+      lowestScore: 0,
       recentAttempts: [],
       studentsNeedingAttention: [],
       scoreDistribution: {
@@ -50,6 +52,15 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
         above90: 0,
       },
       languageBreakdown: [],
+      scoreOverTime: [],
+      classAverage: [],
+      studentComparison: [],
+      languagePerformance: [
+        { name: "English", score: 0, totalAttempts: 0 },
+        { name: "Hindi", score: 0, totalAttempts: 0 },
+        { name: "Tamil", score: 0, totalAttempts: 0 },
+      ],
+      mistakeFrequency: [],
     };
   }
 
@@ -180,7 +191,95 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
     },
   ]);
 
-  // ── 6. Fetch Student User Details to cross-reference ────────────────────────
+  // ── 6. Score Over Time (Chronological Attempt Aggregations) ─────────────────
+  const scoreOverTimePromise = ReadingAttempt.aggregate([
+    {
+      $match: {
+        studentId: { $in: studentObjectIds },
+        score: { $ne: null },
+      },
+    },
+    { $sort: { createdAt: 1 } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        avgScore: { $avg: "$score" },
+      },
+    },
+    { $sort: { _id: 1 } },
+    { $limit: 15 },
+    {
+      $project: {
+        _id: 0,
+        name: "$_id",
+        score: { $round: ["$avgScore", 1] },
+      },
+    },
+  ]);
+
+  // ── 7. Class Average by Exercise Level/Difficulty ───────────────────────────
+  const classAveragePromise = ReadingAttempt.aggregate([
+    {
+      $match: {
+        studentId: { $in: studentObjectIds },
+        score: { $ne: null },
+      },
+    },
+    {
+      $lookup: {
+        from: "exercises",
+        localField: "exerciseId",
+        foreignField: "_id",
+        as: "exercise",
+      },
+    },
+    {
+      $group: {
+        _id: { $ifNull: [{ $arrayElemAt: ["$exercise.difficulty", 0] }, "Beginner"] },
+        average: { $avg: "$score" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        name: {
+          $concat: [
+            { $toUpper: { $substrCP: ["$_id", 0, 1] } },
+            { $substrCP: ["$_id", 1, { $subtract: [{ $strLenCP: "$_id" }, 1] }] },
+          ],
+        },
+        average: { $round: ["$average", 1] },
+      },
+    },
+  ]);
+
+  // ── 8. Mistake Frequency across Attempts ────────────────────────────────────
+  const mistakeFrequencyPromise = ReadingAttempt.aggregate([
+    {
+      $match: {
+        studentId: { $in: studentObjectIds },
+        score: { $ne: null },
+      },
+    },
+    { $unwind: "$mistakes" },
+    {
+      $group: {
+        _id: { $toLower: "$mistakes" },
+        value: { $sum: 1 },
+      },
+    },
+    { $sort: { value: -1 } },
+    { $limit: 8 },
+    {
+      $project: {
+        _id: 0,
+        name: "$_id",
+        value: 1,
+      },
+    },
+  ]);
+
+  // ── 9. Fetch Student User Details to cross-reference ────────────────────────
   const studentsPromise = User.find({
     _id: { $in: studentObjectIds },
   }).select("name email currentLevel preferredLanguage status");
@@ -191,6 +290,9 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
     studentStats,
     distributionResult,
     languageBreakdown,
+    scoreOverTime,
+    classAverage,
+    mistakeFrequency,
     studentsList,
   ] = await Promise.all([
     overviewPromise,
@@ -198,6 +300,9 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
     studentStatsPromise,
     distributionPromise,
     languagePromise,
+    scoreOverTimePromise,
+    classAveragePromise,
+    mistakeFrequencyPromise,
     studentsPromise,
   ]);
 
@@ -214,22 +319,11 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
     statsMap.set(String(stat._id), stat);
   });
 
-  // Determine which students need attention
+  // Determine which students need attention (only students with actual recorded attempts who are struggling)
   const studentsNeedingAttention = [];
   studentsList.forEach((student) => {
     const stat = statsMap.get(String(student._id));
-    if (!stat || stat.totalAttempts === 0) {
-      studentsNeedingAttention.push({
-        studentId: student._id,
-        name: student.name,
-        email: student.email,
-        currentLevel: student.currentLevel,
-        averageScore: null,
-        latestScore: null,
-        totalAttempts: 0,
-        reason: "No reading attempts completed yet",
-      });
-    } else {
+    if (stat && stat.totalAttempts > 0) {
       const avg = Math.round(stat.averageScore * 10) / 10;
       const latest = stat.latestScore;
       let reasons = [];
@@ -241,6 +335,7 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
         studentsNeedingAttention.push({
           studentId: student._id,
           name: student.name,
+          studentName: student.name,
           email: student.email,
           currentLevel: student.currentLevel,
           averageScore: avg,
@@ -269,6 +364,26 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
     above90: facetData.above90?.[0]?.count || 0,
   };
 
+  // Real student comparison from actual enrolled students
+  const studentComparison = studentsList.map((s) => {
+    const stat = statsMap.get(String(s._id));
+    return {
+      id: String(s._id),
+      name: s.name,
+      score: stat && stat.totalAttempts > 0 ? Math.round(stat.averageScore) : 0,
+      attempts: stat ? stat.totalAttempts : 0,
+    };
+  });
+
+  // Real language performance from actual language breakdown
+  const languagePerformance = languageBreakdown.length > 0
+    ? languageBreakdown.map((l) => ({ name: l.language, score: Math.round(l.averageScore || 0), totalAttempts: l.totalAttempts }))
+    : [
+        { name: "English", score: 0, totalAttempts: 0 },
+        { name: "Hindi", score: 0, totalAttempts: 0 },
+        { name: "Tamil", score: 0, totalAttempts: 0 },
+      ];
+
   return {
     totalStudents: studentIds.length,
     totalAttempts: overview.totalAttempts,
@@ -279,6 +394,11 @@ const getTeacherDashboardData = async (teacherId, studentIds = []) => {
     studentsNeedingAttention,
     scoreDistribution,
     languageBreakdown,
+    scoreOverTime,
+    classAverage,
+    studentComparison,
+    languagePerformance,
+    mistakeFrequency,
   };
 };
 

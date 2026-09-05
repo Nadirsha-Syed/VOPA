@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { BarChart, Bar, CartesianGrid, LineChart, Line, XAxis, YAxis, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
+import { BarChart, Bar, CartesianGrid, LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts'
 import PageHeader from '../../components/common/PageHeader'
 import ChartCard from '../../components/charts/ChartCard'
 import Button from '../../components/common/Button'
-import { teacherAnalytics } from '../../data/teacherMockData'
+import LoadingState from '../../components/common/LoadingState'
 import api from '../../services/api'
 
 const filterOptions = ['7 Days', '30 Days', '3 Months', 'Custom']
@@ -11,25 +11,52 @@ const filterOptions = ['7 Days', '30 Days', '3 Months', 'Custom']
 export default function TeacherAnalytics() {
   const [range, setRange] = useState('30 Days')
   const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await api.get('/teacher/dashboard')
+        const res = await api.get('/teacher/analytics')
         if (res.data?.success) {
           setData(res.data.data)
         }
       } catch (e) {
         console.warn('Could not load live analytics:', e)
+      } finally {
+        setLoading(false)
       }
     }
     fetchAnalytics()
   }, [])
 
+  if (loading) return <LoadingState message="Loading class analytics..." />
+
   const averageScore = data?.classAverageScore ?? 0
   const highestScore = data?.highestScore ?? 0
   const lowestScore = data?.lowestScore ?? 0
   const totalAttempts = data?.totalAttempts ?? 0
+
+  const scoreOverTime = data?.scoreOverTime || []
+  const classAverage = data?.classAverage || []
+  const studentComparison = data?.studentComparison || []
+  const languagePerformance = data?.languagePerformance || [
+    { name: 'English', score: 0 },
+    { name: 'Hindi', score: 0 },
+    { name: 'Tamil', score: 0 },
+  ]
+  const mistakeFrequency = data?.mistakeFrequency || []
+
+  const emptyChartStyle = {
+    height: '100%',
+    minHeight: 220,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#6b7280',
+    textAlign: 'center',
+    padding: '24px',
+    fontSize: '0.9rem',
+  }
 
   return (
     <div>
@@ -54,43 +81,55 @@ export default function TeacherAnalytics() {
 
       <div className="grid-2">
         <ChartCard title="Score Over Time">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={teacherAnalytics.scoreOverTime}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
-              <XAxis dataKey="name" />
-              <YAxis domain={[60, 100]} />
-              <Line type="monotone" dataKey="score" stroke="#365df5" strokeWidth={3} />
-            </LineChart>
-          </ResponsiveContainer>
+          {scoreOverTime.length === 0 ? (
+            <div style={emptyChartStyle}>No score trends recorded yet. Completed student practices will populate this timeline.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={scoreOverTime}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+                <XAxis dataKey="name" />
+                <YAxis domain={[0, 100]} />
+                <Line type="monotone" dataKey="score" stroke="#365df5" strokeWidth={3} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
 
-        <ChartCard title="Class Average">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={teacherAnalytics.classAverage}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
-              <XAxis dataKey="name" />
-              <YAxis domain={[0, 100]} />
-              <Bar dataKey="average" fill="#6d5ef6" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <ChartCard title="Class Average by Level">
+          {classAverage.length === 0 ? (
+            <div style={emptyChartStyle}>No reading exercises evaluated yet for difficulty breakdown.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={classAverage}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+                <XAxis dataKey="name" />
+                <YAxis domain={[0, 100]} />
+                <Bar dataKey="average" fill="#6d5ef6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
       </div>
 
       <div className="grid-2">
         <ChartCard title="Student Comparison">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={teacherAnalytics.studentComparison}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="name" />
-              <PolarRadiusAxis domain={[0, 100]} />
-              <Radar dataKey="score" stroke="#1e9f67" fill="#1e9f67" fillOpacity={0.4} />
-            </RadarChart>
-          </ResponsiveContainer>
+          {studentComparison.length === 0 ? (
+            <div style={emptyChartStyle}>No students currently enrolled in this class.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={studentComparison}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+                <XAxis dataKey="name" />
+                <YAxis domain={[0, 100]} />
+                <Bar dataKey="score" fill="#365df5" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
 
         <ChartCard title="Language Performance">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={teacherAnalytics.studentComparison}>
+            <BarChart data={languagePerformance}>
               <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
               <XAxis dataKey="name" />
               <YAxis domain={[0, 100]} />
@@ -101,14 +140,18 @@ export default function TeacherAnalytics() {
       </div>
 
       <ChartCard title="Mistake Frequency">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={teacherAnalytics.mistakeFrequency}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Bar dataKey="value" fill="#d99218" radius={[8, 8, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        {mistakeFrequency.length === 0 ? (
+          <div style={emptyChartStyle}>No frequent mispronounced words or mistakes identified yet across attempts.</div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={mistakeFrequency}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#dfe7f5" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Bar dataKey="value" fill="#d99218" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </ChartCard>
     </div>
   )

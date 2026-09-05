@@ -116,10 +116,10 @@ export default function TeacherStudents() {
               <tbody>
                 {pagedStudents.map((student) => (
                   <tr key={student.id}>
-                    <td>{student.name}</td>
+                    <td><strong>{student.name}</strong><br /><small style={{ color: '#6b7280' }}>{student.email}</small></td>
                     <td>{student.language}</td>
-                    <td>{student.score}%</td>
-                    <td>+{student.improvement}%</td>
+                    <td>{student.totalAttempts > 0 ? `${student.score}%` : 'No attempts yet'}</td>
+                    <td>{student.improvement !== undefined && student.improvement !== null ? `+${student.improvement}%` : '—'}</td>
                     <td>{student.lastAttempt}</td>
                     <td><StatusBadge status={student.status} /></td>
                     <td>

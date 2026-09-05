@@ -201,6 +201,7 @@ const getTeacherReadingAttempts = async (req, res, next) => {
       exercise: a.exerciseId?.title || "Reading Exercise",
       language: a.exerciseId?.language || "English",
       score: a.score || 0,
+      mistakes: Array.isArray(a.mistakes) ? a.mistakes.length : 0,
       date: new Date(a.createdAt).toLocaleDateString(),
       createdAt: a.createdAt,
     }));
@@ -247,6 +248,7 @@ const getStudentPerformance = async (req, res, next) => {
 
 module.exports = {
   getTeacherDashboard,
+  getTeacherAnalytics: getTeacherDashboard,
   getTeacherStudents,
   getTeacherReadingAttempts,
   getStudentPerformance,

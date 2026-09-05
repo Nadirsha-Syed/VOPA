@@ -131,7 +131,7 @@ export default function TeacherDashboard() {
                 ) : (
                   studentsNeedingAttention.slice(0, 4).map((student) => (
                     <tr key={student.studentId || student._id}>
-                      <td>{student.studentName || 'Student'}</td>
+                      <td>{student.studentName || student.name || 'Student'}</td>
                       <td>{Math.round(student.averageScore || 0)}%</td>
                       <td><StatusBadge status="Needs Attention" /></td>
                       <td><Button size="sm" variant="secondary" onClick={() => navigate(`/teacher/students/${student.studentId || student._id}`)}>View</Button></td>
