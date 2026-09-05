@@ -73,6 +73,24 @@ const seedDatabase = async () => {
       console.log("✓ Default Teacher already exists.");
     }
 
+    // 4. Seed Default Student
+    let student = await User.findOne({ email: "student@vopa.org" });
+    if (!student) {
+      student = await User.create({
+        name: "Rahul Kumar",
+        email: "student@vopa.org",
+        passwordHash: "Student@123456",
+        role: "student",
+        preferredLanguage: "English",
+        assignedTeacher: teacher._id,
+        currentLevel: "beginner",
+        status: "active",
+      });
+      console.log("✓ Default Student created: student@vopa.org / Student@123456");
+    } else {
+      console.log("✓ Default Student already exists.");
+    }
+
     // 4. Seed Starter Exercises
     const defaultExercises = [
       {
