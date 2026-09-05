@@ -45,6 +45,27 @@ const studentService = {
       content: 'The quick brown fox jumps over the lazy dog.',
       words: ['The', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog.']
     };
+  },
+  getProgress: async () => {
+    await delay(600);
+    return {
+      weeklyStats: [
+        { day: 'Mon', score: 65, minutes: 15 },
+        { day: 'Tue', score: 72, minutes: 20 },
+        { day: 'Wed', score: 85, minutes: 10 },
+        { day: 'Thu', score: 80, minutes: 25 },
+        { day: 'Fri', score: 95, minutes: 30 },
+        { day: 'Sat', score: 90, minutes: 15 },
+        { day: 'Sun', score: 100, minutes: 20 }
+      ],
+      recentAchievements: [
+        { id: 1, title: '7 Day Streak', icon: 'Flame', color: 'text-orange-500', bg: 'bg-orange-50' },
+        { id: 2, title: 'Perfect Score', icon: 'Star', color: 'text-yellow-500', bg: 'bg-yellow-50' },
+        { id: 3, title: '100 Words Read', icon: 'BookOpen', color: 'text-blue-500', bg: 'bg-blue-50' }
+      ],
+      totalReadingTime: 135,
+      averageScore: 84
+    };
   }
 };
 

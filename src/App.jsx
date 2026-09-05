@@ -12,8 +12,7 @@ import { Dashboard } from './pages/student/Dashboard';
 import { Languages } from './pages/student/Languages';
 import { Exercise } from './pages/student/Exercise';
 import { Result } from './pages/student/Result';
-
-const Progress = () => <div>Student Progress</div>;
+import { Progress } from './pages/student/Progress';
 
 function App() {
   return (
