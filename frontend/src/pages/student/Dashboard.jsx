@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import studentService from '../../services/studentService';
 import { MetricCard } from '../../components/student/MetricCard';
@@ -10,6 +11,7 @@ import { Loader } from '../../components/common/Loader';
 
 export const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
@@ -53,12 +55,14 @@ export const Dashboard = () => {
           value={data.metrics.continueLearning.value}
           iconName={data.metrics.continueLearning.icon}
           bgColor="bg-pastel-blue"
+          onClick={() => navigate('/student/exercises/ex1')}
         />
         <MetricCard 
           title={data.metrics.progress.title}
           value={data.metrics.progress.value}
           iconName={data.metrics.progress.icon}
           bgColor="bg-pastel-green"
+          onClick={() => navigate('/student/progress')}
         />
         <MetricCard 
           title={data.metrics.badges.title}
@@ -85,11 +89,11 @@ export const Dashboard = () => {
             />
           ))}
         </div>
-        {selectedLanguage && (
-          <div className="mt-4 flex justify-end">
-            <Button>Continue Practice</Button>
-          </div>
-        )}
+        <div className="mt-4 flex justify-end">
+          <Button onClick={() => navigate('/student/exercises/ex1', { state: { language: selectedLanguage } })}>
+            Continue Practice {selectedLanguage ? `(${data.languages.find(l => l.id === selectedLanguage)?.name || ''})` : ''} →
+          </Button>
+        </div>
       </section>
 
       {/* Recommended Exercises */}
