@@ -6,6 +6,8 @@ import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 
+import { Loader } from '../../components/common/Loader';
+
 export const Exercise = () => {
   // In a real app, we'd get the ID from URL, but in our router it's just /student/exercises 
   // Wait, our route in App.jsx is path="exercises" (no ID) and path="exercises/:id/result". 
@@ -43,11 +45,7 @@ export const Exercise = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader message="Loading exercise..." />;
   }
 
   if (!exercise) {

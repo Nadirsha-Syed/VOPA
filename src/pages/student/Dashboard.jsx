@@ -6,6 +6,8 @@ import { LanguageCard } from '../../components/student/LanguageCard';
 import { ExerciseCard } from '../../components/student/ExerciseCard';
 import { Button } from '../../components/common/Button';
 
+import { Loader } from '../../components/common/Loader';
+
 export const Dashboard = () => {
   const { user } = useAuth();
   const [data, setData] = useState(null);
@@ -27,11 +29,7 @@ export const Dashboard = () => {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader message="Loading your dashboard..." />;
   }
 
   if (!data) {

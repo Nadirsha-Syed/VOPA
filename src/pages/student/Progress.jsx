@@ -12,6 +12,8 @@ import * as Icons from 'lucide-react';
 import studentService from '../../services/studentService';
 import { Card } from '../../components/common/Card';
 
+import { Loader } from '../../components/common/Loader';
+
 export const Progress = () => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,11 +33,7 @@ export const Progress = () => {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader message="Loading your progress..." />;
   }
 
   if (!data) {

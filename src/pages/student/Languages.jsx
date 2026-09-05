@@ -4,6 +4,8 @@ import studentService from '../../services/studentService';
 import { LanguageCard } from '../../components/student/LanguageCard';
 import { Button } from '../../components/common/Button';
 
+import { Loader } from '../../components/common/Loader';
+
 export const Languages = () => {
   const [languages, setLanguages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,11 +35,7 @@ export const Languages = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader message="Loading languages..." />;
   }
 
   return (
