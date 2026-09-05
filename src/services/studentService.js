@@ -23,15 +23,15 @@ const studentService = {
         }
       },
       languages: [
-        { id: 'en', name: 'English', native: 'English', icon: 'US' },
-        { id: 'hi', name: 'Hindi', native: 'हिंदी', icon: 'IN' },
-        { id: 'es', name: 'Spanish', native: 'Español', icon: 'ES' },
-        { id: 'ta', name: 'Tamil', native: 'தமிழ்', icon: 'IN' }
+        { id: 'en', name: 'English', native: 'English', icon: 'EN_FLAG' },
+        { id: 'hi', name: 'Hindi', native: 'हिंदी', icon: 'HI_TEXT' },
+        { id: 'es', name: 'Spanish', native: 'Español', icon: 'ES_FLAG' },
+        { id: 'ta', name: 'Tamil', native: 'தமிழ்', icon: 'TA_TEXT' }
       ],
       recommendedExercises: [
-        { id: 'ex1', title: 'Animals', language: 'English', difficulty: 'Easy', progress: 0, icon: 'Dog' },
-        { id: 'ex2', title: 'Colors', language: 'English', difficulty: 'Easy', progress: 100, icon: 'Palette' },
-        { id: 'ex3', title: 'My Family', language: 'Spanish', difficulty: 'Medium', progress: 50, icon: 'Users' }
+        { id: 'ex1', title: 'Animals', language: 'English', difficulty: 'Easy', progress: 0, icon: '🦖' },
+        { id: 'ex2', title: 'Colors', language: 'English', difficulty: 'Easy', progress: 100, icon: '💐' },
+        { id: 'ex3', title: 'My Family', language: 'Spanish', difficulty: 'Medium', progress: 50, icon: '👨‍👩‍👧‍👦' }
       ]
     };
   },

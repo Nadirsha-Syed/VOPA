@@ -128,8 +128,8 @@ export const Register = () => {
 
           <div className="pt-2">
             <label className="text-sm font-medium text-gray-700 block mb-2">I am a</label>
-            <div className="grid grid-cols-3 gap-3">
-              {['STUDENT', 'TEACHER', 'ADMIN'].map((roleType) => (
+            <div className="grid grid-cols-2 gap-3">
+              {['STUDENT', 'TEACHER'].map((roleType) => (
                 <button
                   key={roleType}
                   type="button"

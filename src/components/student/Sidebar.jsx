@@ -1,16 +1,25 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Home, PlayCircle, TrendingUp, Globe, User, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Home, PlayCircle, TrendingUp, Globe, User, X, LogOut } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const NAV_ITEMS = [
   { name: 'Home', path: '/student/dashboard', icon: Home },
   { name: 'Practice', path: '/student/exercises/current', icon: PlayCircle },
   { name: 'Progress', path: '/student/progress', icon: TrendingUp },
   { name: 'Languages', path: '/student/languages', icon: Globe },
-  { name: 'Profile', path: '#', icon: User },
+  { name: 'Profile', path: '/student/profile', icon: User },
 ];
 
 export const Sidebar = ({ isOpen, onClose }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -67,8 +76,15 @@ export const Sidebar = ({ isOpen, onClose }) => {
             })}
           </nav>
 
-          {/* Footer Area */}
-          <div className="p-6 border-t border-gray-100">
+          {/* Footer Area with Logout */}
+          <div className="p-6 border-t border-gray-100 space-y-4">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-2 w-full rounded-xl font-medium text-red-500 hover:bg-red-50 transition-colors"
+            >
+              <LogOut size={20} />
+              Logout
+            </button>
             <p className="text-xs text-gray-400 text-center">
               "Every Voice Learns. Every Child Belongs."
             </p>

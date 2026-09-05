@@ -13,6 +13,7 @@ import { Languages } from './pages/student/Languages';
 import { Exercise } from './pages/student/Exercise';
 import { Result } from './pages/student/Result';
 import { Progress } from './pages/student/Progress';
+import { Profile } from './pages/student/Profile';
 
 function App() {
   return (
@@ -34,8 +35,10 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="languages" element={<Languages />} />
             <Route path="exercises" element={<Exercise />} />
+            <Route path="exercises/:id" element={<Exercise />} />
             <Route path="exercises/:id/result" element={<Result />} />
             <Route path="progress" element={<Progress />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
           
           {/* Default Route */}

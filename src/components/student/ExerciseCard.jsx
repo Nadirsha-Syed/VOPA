@@ -5,7 +5,7 @@ import * as Icons from 'lucide-react';
 
 export const ExerciseCard = ({ id, title, language, difficulty, progress, iconName }) => {
   const navigate = useNavigate();
-  const Icon = Icons[iconName] || Icons.BookOpen;
+  const IconComponent = Icons[iconName];
 
   return (
     <Card 
@@ -14,7 +14,11 @@ export const ExerciseCard = ({ id, title, language, difficulty, progress, iconNa
       padding="p-5"
     >
       <div className="w-16 h-16 bg-pastel-yellow rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-        <Icon className="w-8 h-8 text-orange-500" />
+        {IconComponent ? (
+          <IconComponent className="w-8 h-8 text-orange-500" />
+        ) : (
+          <span className="text-3xl">{iconName}</span>
+        )}
       </div>
       
       <h4 className="font-bold text-gray-900">{title}</h4>
