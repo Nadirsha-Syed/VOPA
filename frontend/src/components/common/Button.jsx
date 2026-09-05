@@ -1,20 +1,38 @@
-export default function Button({ children, variant = 'primary', size = 'md', className = '', onClick, type = 'button', disabled = false }) {
+export function Button({
+  children,
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  onClick,
+  type = 'button',
+  disabled = false,
+  ...props
+}) {
   const variantClass = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
     ghost: 'btn-ghost',
     danger: 'btn-danger',
-  }[variant] || 'btn-primary'
+    outline: 'btn-outline',
+  }[variant] || 'btn-primary';
 
   const sizeClass = {
     sm: 'btn-sm',
     md: 'btn-md',
     lg: 'btn-lg',
-  }[size] || 'btn-md'
+  }[size] || 'btn-md';
 
   return (
-    <button type={type} className={`btn ${variantClass} ${sizeClass} ${className}`.trim()} onClick={onClick} disabled={disabled}>
+    <button
+      type={type}
+      className={`btn ${variantClass} ${sizeClass} ${className}`.trim()}
+      onClick={onClick}
+      disabled={disabled}
+      {...props}
+    >
       {children}
     </button>
-  )
+  );
 }
+
+export default Button;

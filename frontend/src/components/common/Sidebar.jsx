@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 const teacherLinks = [
   { label: 'Dashboard', to: '/teacher/dashboard' },
@@ -20,7 +21,14 @@ const adminLinks = [
 ]
 
 export default function Sidebar({ type = 'teacher', collapsed = false, onToggle, mobileOpen = false }) {
-  const links = type === 'admin' ? adminLinks : teacherLinks
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const links = type === 'admin' ? adminLinks : teacherLinks;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
@@ -43,8 +51,8 @@ export default function Sidebar({ type = 'teacher', collapsed = false, onToggle,
       </nav>
 
       <div className="sidebar-footer">
-        <button type="button" className="logout-btn">Logout</button>
+        <button type="button" className="logout-btn" onClick={handleLogout}>Logout</button>
       </div>
     </aside>
-  )
+  );
 }
