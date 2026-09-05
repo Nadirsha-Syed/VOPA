@@ -78,6 +78,14 @@ const LANGUAGE_EXERCISES = {
       langCode: 'ta-IN',
       content: 'சிறுவர்கள் பள்ளி நூலகத்தில் பல வண்ணக் கதைப் புத்தகங்களை விரும்பிப் படிக்கிறார்கள்.',
       words: ['சிறுவர்கள்', 'பள்ளி', 'நூலகத்தில்', 'பல', 'வண்ணக்', 'கதைப்', 'புத்தகங்களை', 'விரும்பிப்', 'படிக்கிறார்கள்.']
+    },
+    {
+      id: 'ex_ta_5',
+      title: 'நதிக்கரை மலர்கள்',
+      language: 'Tamil',
+      langCode: 'ta-IN',
+      content: 'அழகிய நதிக்கரையில் வண்ண மலர்கள் மலர்ந்து வண்டுகள் ரீங்காரமிடுகின்றன.',
+      words: ['அழகிய', 'நதிக்கரையில்', 'வண்ண', 'மலர்கள்', 'மலர்ந்து', 'வண்டுகள்', 'ரீங்காரமிடுகின்றன.']
     }
   ],
   te: [
@@ -104,6 +112,22 @@ const LANGUAGE_EXERCISES = {
       langCode: 'te-IN',
       content: 'చెట్ల కొమ్మలపై అందమైన పక్షులు మధురమైన పాటలు పాడుతున్నాయి.',
       words: ['చెట్ల', 'కొమ్మలపై', 'అందమైన', 'పక్షులు', 'మధురమైన', 'పాటలు', 'పాడుతున్నాయి.']
+    },
+    {
+      id: 'ex_te_4',
+      title: 'పుస్తకాల ప్రపంచం',
+      language: 'Telugu',
+      langCode: 'te-IN',
+      content: 'పిల్లలు పాఠశాల గ్రంథాలయంలో ఆసక్తికరమైన కథల పుస్తకాలు చదువుతారు.',
+      words: ['పిల్లలు', 'పాఠశాల', 'గ్రంథాలయంలో', 'ఆసక్తికరమైన', 'కథల', 'పుస్తకాలు', 'చదువుతారు.']
+    },
+    {
+      id: 'ex_te_5',
+      title: 'తోటలో పువ్వులు',
+      language: 'Telugu',
+      langCode: 'te-IN',
+      content: 'అందమైన పూల తోటలో రంగురంగుల సీతాకోకచిలుకలు ఎగురుతున్నాయి.',
+      words: ['అందమైన', 'పూల', 'తోటలో', 'రంగురంగుల', 'సీతాకోకచిలుకలు', 'ఎగురుతున్నాయి.']
     }
   ],
   es: [
@@ -130,6 +154,22 @@ const LANGUAGE_EXERCISES = {
       langCode: 'es-ES',
       content: 'Los pajaritos cantan canciones alegres en las ramas de los grandes árboles.',
       words: ['Los', 'pajaritos', 'cantan', 'canciones', 'alegres', 'en', 'las', 'ramas', 'de', 'los', 'grandes', 'árboles.']
+    },
+    {
+      id: 'ex_es_4',
+      title: 'El Jardín de Flores',
+      language: 'Spanish',
+      langCode: 'es-ES',
+      content: 'Las mariposas coloridas vuelan alegremente entre las flores del jardín.',
+      words: ['Las', 'mariposas', 'coloridas', 'vuelan', 'alegremente', 'entre', 'las', 'flores', 'del', 'jardín.']
+    },
+    {
+      id: 'ex_es_5',
+      title: 'Historias en la Biblioteca',
+      language: 'Spanish',
+      langCode: 'es-ES',
+      content: 'A los niños les encanta leer libros de aventuras en la biblioteca escolar.',
+      words: ['A', 'los', 'niños', 'les', 'encanta', 'leer', 'libros', 'de', 'aventuras', 'en', 'la', 'biblioteca', 'escolar.']
     }
   ],
   mr: [
@@ -156,6 +196,22 @@ const LANGUAGE_EXERCISES = {
       langCode: 'mr-IN',
       content: 'झाडांच्या हिरव्या फांद्यांवर सुंदर पक्षी गोड गाणी गात आहेत.',
       words: ['झाडांच्या', 'हिरव्या', 'फांद्यांवर', 'सुंदर', 'पक्षी', 'गोड', 'गाणी', 'गात', 'आहेत.']
+    },
+    {
+      id: 'ex_mr_4',
+      title: 'गोष्टींची पुस्तके',
+      language: 'Marathi',
+      langCode: 'mr-IN',
+      content: 'मुलं शाळेच्या ग्रंथालयात रंगीबेरंगी गोष्टींची पुस्तके आनंदाने वाचतात.',
+      words: ['मुलं', 'शाळेच्या', 'ग्रंथालयात', 'रंगीबेरंगी', 'गोष्टींची', 'पुस्तके', 'आनंदाने', 'वाचतात.']
+    },
+    {
+      id: 'ex_mr_5',
+      title: 'फुलांची बाग',
+      language: 'Marathi',
+      langCode: 'mr-IN',
+      content: 'सुंदर बागेमध्ये रंगीबेरंगी फुले उमलली आहेत आणि फुलपाखरे उडत आहेत.',
+      words: ['सुंदर', 'बागेमध्ये', 'रंगीबेरंगी', 'फुले', 'उमलली', 'आहेत', 'आणि', 'फुलपाखरे', 'उडत', 'आहेत.']
     }
   ],
   en: [
@@ -202,7 +258,7 @@ const LANGUAGE_EXERCISES = {
   ]
 };
 
-const LANG_NORMALIZE = {
+export const LANG_NORMALIZE = {
   hindi: 'hi',
   hi: 'hi',
   tamil: 'ta',
@@ -215,6 +271,39 @@ const LANG_NORMALIZE = {
   mr: 'mr',
   english: 'en',
   en: 'en'
+};
+
+export const EXERCISE_ICONS = {
+  ex_hi_1: '🐱',
+  ex_hi_2: '☀️',
+  ex_hi_3: '🌳',
+  ex_hi_4: '📚',
+  ex_hi_5: '🌊',
+  ex_ta_1: '🐱',
+  ex_ta_2: '☀️',
+  ex_ta_3: '🐦',
+  ex_ta_4: '📚',
+  ex_ta_5: '🌸',
+  ex_te_1: '🐱',
+  ex_te_2: '☀️',
+  ex_te_3: '🐦',
+  ex_te_4: '📚',
+  ex_te_5: '🌸',
+  ex_es_1: '🐱',
+  ex_es_2: '☀️',
+  ex_es_3: '🐦',
+  ex_es_4: '🌸',
+  ex_es_5: '📚',
+  ex_mr_1: '🐱',
+  ex_mr_2: '☀️',
+  ex_mr_3: '🐦',
+  ex_mr_4: '📚',
+  ex_mr_5: '🌸',
+  ex1: '🦊',
+  ex_en_2: '☀️',
+  ex_en_3: '🐦',
+  ex_en_4: '🐰',
+  ex_en_5: '📚',
 };
 
 const getStudentAttempts = async () => {
@@ -289,10 +378,51 @@ const studentService = {
     }
   },
 
-  getDashboard: async () => {
+  getRecommendedExercises: (targetLanguage = 'en', attempts = []) => {
+    const rawKey = (targetLanguage || 'en').toLowerCase().trim();
+    const langKey = LANG_NORMALIZE[rawKey] || 'en';
+    const pool = LANGUAGE_EXERCISES[langKey] || LANGUAGE_EXERCISES.en;
+
+    const attemptMap = new Map();
+    attempts.forEach(a => {
+      if (a.exerciseId) {
+        attemptMap.set(String(a.exerciseId), a.score);
+      }
+      if (a.id) {
+        attemptMap.set(String(a.id), a.score);
+      }
+    });
+
+    return pool.map((ex, idx) => {
+      const score = attemptMap.get(ex.id) ?? (attemptMap.get(String(idx + 1)) ?? 0);
+      return {
+        id: ex.id,
+        title: ex.title,
+        language: ex.language,
+        difficulty: 'Easy',
+        progress: score > 0 ? (score >= 80 ? 100 : score) : 0,
+        icon: EXERCISE_ICONS[ex.id] || '📖',
+      };
+    });
+  },
+
+  getDashboard: async (targetLanguage) => {
     await delay(100);
     const attempts = await getStudentAttempts();
     
+    // Resolve language to recommend
+    let resolvedLang = targetLanguage;
+    if (!resolvedLang) {
+      try {
+        const stored = localStorage.getItem('vopa_selected_language');
+        const userStr = localStorage.getItem('vopa_user');
+        const u = userStr ? JSON.parse(userStr) : null;
+        resolvedLang = stored || u?.preferredLanguage || 'en';
+      } catch (e) {
+        resolvedLang = 'en';
+      }
+    }
+
     // Dynamic calculations based on user's real attempts
     const readingTimeMins = attempts.length > 0 ? Math.max(1, Math.round(attempts.length * 1.5)) : 0;
     const progressCount = Math.min(10, attempts.length);
@@ -315,6 +445,8 @@ const studentService = {
     if (attempts.length >= 5) {
       unlockedBadges.push({ id: 'reading_champion', title: 'Reading Champion', icon: 'Flame' });
     }
+
+    const recommendedExercises = studentService.getRecommendedExercises(resolvedLang, attempts);
 
     return {
       metrics: {
@@ -342,13 +474,7 @@ const studentService = {
         { id: 'es', name: 'Spanish', native: 'Español', icon: 'ES_FLAG' },
         { id: 'mr', name: 'Marathi', native: 'मराठी', icon: 'MR_TEXT' }
       ],
-      recommendedExercises: [
-        { id: 'ex_hi_1', title: 'बिल्ली और दूध', language: 'Hindi', difficulty: 'Easy', progress: languagesAttempted.has('hindi') ? 100 : 0, icon: '🐱' },
-        { id: 'ex_ta_1', title: 'பூனையும் பாலும்', language: 'Tamil', difficulty: 'Easy', progress: languagesAttempted.has('tamil') ? 100 : 0, icon: '🥛' },
-        { id: 'ex_te_1', title: 'పిల్లి మరియు పాలు', language: 'Telugu', difficulty: 'Easy', progress: languagesAttempted.has('telugu') ? 100 : 0, icon: '🐾' },
-        { id: 'ex_es_1', title: 'El Gato Curioso', language: 'Spanish', difficulty: 'Easy', progress: languagesAttempted.has('spanish') ? 100 : 0, icon: '☀️' },
-        { id: 'ex1', title: 'Animals in the Wild', language: 'English', difficulty: 'Easy', progress: languagesAttempted.has('english') ? 100 : 0, icon: '🦊' }
-      ]
+      recommendedExercises,
     };
   },
   getExercise: async (id, language, previousContent) => {

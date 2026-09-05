@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import studentService from '../../services/studentService';
+import studentService, { LANG_NORMALIZE } from '../../services/studentService';
 import { MetricCard } from '../../components/student/MetricCard';
 import { LanguageCard } from '../../components/student/LanguageCard';
 import { ExerciseCard } from '../../components/student/ExerciseCard';
 import { Button } from '../../components/common/Button';
-
 import { Loader } from '../../components/common/Loader';
 
 export const Dashboard = () => {
@@ -14,12 +13,17 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState(null);
+
+  // Initialize with persisted language preference or user's preferred language (defaulting to English)
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    return localStorage.getItem('vopa_selected_language') ||
+      (user?.preferredLanguage ? (LANG_NORMALIZE[user.preferredLanguage.toLowerCase()] || 'en') : 'en');
+  });
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const dashboardData = await studentService.getDashboard();
+        const dashboardData = await studentService.getDashboard(selectedLanguage);
         setData(dashboardData);
       } catch (error) {
         console.error("Failed to load dashboard:", error);
@@ -28,7 +32,7 @@ export const Dashboard = () => {
       }
     };
     loadDashboard();
-  }, []);
+  }, [selectedLanguage]);
 
   if (isLoading) {
     return <Loader message="Loading your dashboard..." />;
@@ -37,6 +41,8 @@ export const Dashboard = () => {
   if (!data) {
     return <div className="text-center py-10 text-gray-500">Unable to load dashboard data.</div>;
   }
+
+  const currentLangObj = data.languages.find(l => l.id === selectedLanguage) || data.languages[0];
 
   return (
     <div className="space-y-8 animate-fade-in pb-10">
@@ -55,7 +61,14 @@ export const Dashboard = () => {
           value={data.metrics.continueLearning.value}
           iconName={data.metrics.continueLearning.icon}
           bgColor="bg-pastel-blue"
-          onClick={() => navigate('/student/exercises/ex1')}
+          onClick={() => {
+            const firstEx = data.recommendedExercises?.[0];
+            if (firstEx) {
+              navigate(`/student/exercises/${firstEx.id}`, { state: { language: firstEx.language, languageId: selectedLanguage } });
+            } else {
+              navigate(`/student/exercises?lang=${selectedLanguage || 'en'}`);
+            }
+          }}
         />
         <MetricCard 
           title={data.metrics.progress.title}
@@ -94,18 +107,23 @@ export const Dashboard = () => {
         </div>
         <div className="mt-4 flex justify-end">
           <Button onClick={() => {
-            const lang = selectedLanguage || localStorage.getItem('vopa_selected_language') || 'hi';
+            const lang = selectedLanguage || 'en';
             navigate(`/student/exercises?lang=${lang}`, { state: { language: lang, languageId: lang } });
           }}>
-            Continue Practice {selectedLanguage ? `(${data.languages.find(l => l.id === selectedLanguage)?.name || ''})` : ''} →
+            Continue Practice ({currentLangObj?.name || 'English'}) →
           </Button>
         </div>
       </section>
 
-      {/* Recommended Exercises */}
+      {/* Recommended Exercises - Tailored specifically to the chosen language */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Recommended for You</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-gray-900">Recommended for You</h2>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              {currentLangObj?.name || 'English'}
+            </span>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.recommendedExercises.map(ex => (

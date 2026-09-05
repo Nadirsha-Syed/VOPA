@@ -9,7 +9,7 @@ export const ExerciseCard = ({ id, title, language, difficulty, progress, iconNa
 
   return (
     <Card 
-      onClick={() => navigate(`/student/exercises/${id}`)}
+      onClick={() => navigate(`/student/exercises/${id}`, { state: { language, languageId: language } })}
       className="cursor-pointer hover:shadow-md transition-shadow group flex flex-col items-center text-center"
       padding="p-5"
     >
