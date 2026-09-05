@@ -32,7 +32,9 @@ export default function AdminStudents() {
           teacher: s.assignedTeacher?.name || 'Unassigned',
           teacherId: s.assignedTeacher?._id || '',
           language: s.preferredLanguage || 'English',
-          score: s.currentScore || 0,
+          score: s.score ?? s.currentScore ?? 0,
+          totalAttempts: s.totalAttempts ?? 0,
+          lastAttempt: s.lastAttempt || 'Never',
           status: s.status ? (s.status.charAt(0).toUpperCase() + s.status.slice(1)) : 'Active',
         })))
       }
@@ -104,6 +106,7 @@ export default function AdminStudents() {
               <th>Teacher</th>
               <th>Language</th>
               <th>Current Score</th>
+              <th>Last Attempt</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -111,7 +114,7 @@ export default function AdminStudents() {
           <tbody>
             {students.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
+                <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
                   No students registered on the platform yet.
                 </td>
               </tr>
@@ -122,7 +125,16 @@ export default function AdminStudents() {
                   <td>{student.email}</td>
                   <td>{student.teacher}</td>
                   <td>{student.language}</td>
-                  <td>{student.score > 0 ? `${student.score}%` : 'No attempts'}</td>
+                  <td>
+                    {student.totalAttempts > 0 ? (
+                      <span style={{ fontWeight: 600, color: student.score >= 75 ? '#1e9f67' : '#d99218' }}>
+                        {student.score}% ({student.totalAttempts} {student.totalAttempts === 1 ? 'attempt' : 'attempts'})
+                      </span>
+                    ) : (
+                      <span style={{ color: '#9ca3af' }}>No attempts yet</span>
+                    )}
+                  </td>
+                  <td>{student.lastAttempt}</td>
                   <td>{student.status}</td>
                   <td>
                     <div className="inline-actions">

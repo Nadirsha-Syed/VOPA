@@ -571,9 +571,33 @@ const getTeachers = async (req, res, next) => {
   try {
     const teachers = await User.find({ role: "teacher" })
       .select("-passwordHash")
-      .populate("assignedStudents", "name email status currentLevel");
+      .populate("assignedStudents", "name email status currentLevel")
+      .lean();
 
-    return sendSuccess(res, 200, { teachers }, "Teachers fetched successfully.");
+    const teachersWithStats = await Promise.all(
+      teachers.map(async (teacher) => {
+        const studentIds = (teacher.assignedStudents || []).map((s) => s._id);
+        let classAvg = 0;
+        let totalStudentAttempts = 0;
+        if (studentIds.length > 0) {
+          const attempts = await ReadingAttempt.find({ studentId: { $in: studentIds } }).lean();
+          totalStudentAttempts = attempts.length;
+          if (totalStudentAttempts > 0) {
+            classAvg = Math.round(
+              attempts.reduce((sum, a) => sum + (a.score || 0), 0) / totalStudentAttempts
+            );
+          }
+        }
+        return {
+          ...teacher,
+          id: teacher._id.toString(),
+          assignedStudentsCount: teacher.assignedStudents?.length || 0,
+          classPerformance: classAvg > 0 ? `${classAvg}%` : (totalStudentAttempts > 0 ? "0%" : "No attempts yet"),
+        };
+      })
+    );
+
+    return sendSuccess(res, 200, { teachers: teachersWithStats }, "Teachers fetched successfully.");
   } catch (error) {
     next(error);
   }
@@ -588,9 +612,37 @@ const getStudents = async (req, res, next) => {
   try {
     const students = await User.find({ role: "student" })
       .select("-passwordHash")
-      .populate("assignedTeacher", "name email");
+      .populate("assignedTeacher", "name email")
+      .lean();
 
-    return sendSuccess(res, 200, { students }, "Students fetched successfully.");
+    const studentIds = students.map((s) => s._id);
+    const attempts = await ReadingAttempt.find({ studentId: { $in: studentIds } }).lean();
+
+    const studentsWithStats = students.map((student) => {
+      const studentAttempts = attempts.filter(
+        (a) => a.studentId.toString() === student._id.toString()
+      );
+      const totalAttempts = studentAttempts.length;
+      const avgScore =
+        totalAttempts > 0
+          ? Math.round(studentAttempts.reduce((sum, a) => sum + (a.score || 0), 0) / totalAttempts)
+          : 0;
+      const lastAttemptDoc = studentAttempts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+      const lastAttempt = lastAttemptDoc ? new Date(lastAttemptDoc.createdAt).toLocaleDateString() : "Never";
+      const status = totalAttempts > 0 && avgScore < 75 ? "Needs Attention" : (student.status || "active");
+
+      return {
+        ...student,
+        id: student._id.toString(),
+        score: avgScore,
+        currentScore: avgScore,
+        totalAttempts,
+        lastAttempt,
+        status: status.charAt(0).toUpperCase() + status.slice(1),
+      };
+    });
+
+    return sendSuccess(res, 200, { students: studentsWithStats }, "Students fetched successfully.");
   } catch (error) {
     next(error);
   }
