@@ -3,10 +3,9 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 
-// Auth Pages (Placeholders)
-const Login = () => <div>Login Page</div>;
-const Register = () => <div>Register Page</div>;
-const Unauthorized = () => <div>Unauthorized</div>;
+import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
+import { Unauthorized } from './pages/auth/Unauthorized';
 
 // Student Pages (Placeholders)
 const Dashboard = () => <div>Student Dashboard</div>;
